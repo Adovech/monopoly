@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Монополія Про - PVP</title>
+    <title>Монополія Онлайн - Українська Версія</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-dark: #090d16;
@@ -21,7 +23,6 @@
             
             --cell-w: 95px;
             --cell-h: 115px;
-            --board-size: calc(var(--cell-w) * 7 + var(--cell-h) * 2 + 30px);
         }
 
         * {
@@ -54,33 +55,23 @@
             font-size: 28px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));
         }
 
-        header p {
-            font-size: 11px;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 4px;
-        }
-
-        /* LOBBY SCREEN */
+        /* МЕРЕЖЕВЕ ЛОБІ */
         #auth-screen {
             background: var(--panel-bg);
             border: 2px solid var(--panel-border);
             border-radius: 20px;
             padding: 35px;
             width: 100%;
-            max-width: 600px;
-            margin-top: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            z-index: 20;
+            max-width: 550px;
+            margin-top: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
         }
 
         .auth-title {
@@ -93,15 +84,8 @@
             padding-bottom: 10px;
         }
 
-        .lobby-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .input-group {
             margin-bottom: 15px;
-            padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            border: 1px solid var(--panel-border);
         }
 
         .input-group label {
@@ -124,27 +108,47 @@
             outline: none;
         }
 
-        .input-group input:focus {
-            border-color: var(--accent-cyan);
+        .lobby-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .btn-launch {
-            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            color: #000;
-            font-weight: 900;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 16px;
+        .btn {
+            padding: 15px;
             border: none;
             border-radius: 12px;
-            width: 100%;
+            font-weight: 900;
+            font-size: 14px;
+            text-transform: uppercase;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.2);
-            margin-top: 15px;
+            transition: 0.2s;
+            text-align: center;
         }
 
-        /* GAME LAYOUT */
+        .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #000; }
+        .btn-success { background: linear-gradient(135deg, var(--accent-green), #059669); color: #000; }
+        .btn-secondary { background: var(--panel-border); color: #fff; }
+
+        #waiting-room {
+            display: none;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .room-id-badge {
+            font-size: 28px;
+            color: var(--accent-cyan);
+            font-weight: 900;
+            margin: 15px 0;
+            letter-spacing: 4px;
+            font-family: monospace;
+        }
+
+        /* ІГРОВИЙ ЕКРАН */
         #game-screen {
             display: none;
             width: 100%;
@@ -164,7 +168,7 @@
             padding: 12px;
             border-radius: 24px;
             border: 2px solid var(--panel-border);
-            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.9);
+            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.9);
         }
 
         .board-grid {
@@ -175,6 +179,7 @@
             width: 100%;
         }
 
+        /* КЛІТИНИ ПОЛЯ */
         .cell {
             background: var(--panel-bg);
             border: 1px solid rgba(255, 255, 255, 0.02);
@@ -207,9 +212,10 @@
             z-index: 2;
         }
 
-        .cell-icon { font-size: 20px; margin: auto 0; z-index: 2; }
+        .cell-icon { font-size: 18px; margin: auto 0; z-index: 2; }
         .cell-price { font-size: 9px; font-weight: 700; color: var(--accent-cyan); z-index: 2; }
 
+        /* Філії (Будинки) */
         .cell-infrastructure { position: absolute; display: flex; gap: 2px; z-index: 3; }
         .row-top .cell-infrastructure { top: 16px; }
         .col-right .cell-infrastructure { right: 16px; flex-direction: column; }
@@ -223,7 +229,7 @@
             position: absolute;
             font-size: 8px;
             font-weight: 900;
-            padding: 2px 4px;
+            padding: 1px 4px;
             border-radius: 3px;
             text-transform: uppercase;
             z-index: 4;
@@ -233,40 +239,25 @@
         .row-bottom .cell-owner-tag { top: 16px; }
         .col-left .cell-owner-tag { right: 16px; }
 
-        /* Grid Placement Systems */
-        .pos-0  { grid-column: 1; grid-row: 1; }
-        .pos-1  { grid-column: 2; grid-row: 1; }
-        .pos-2  { grid-column: 3; grid-row: 1; }
-        .pos-3  { grid-column: 4; grid-row: 1; }
-        .pos-4  { grid-column: 5; grid-row: 1; }
-        .pos-5  { grid-column: 6; grid-row: 1; }
-        .pos-6  { grid-column: 7; grid-row: 1; }
-        .pos-7  { grid-column: 8; grid-row: 1; }
-        .pos-8  { grid-column: 9; grid-row: 1; }
-        .pos-9  { grid-column: 9; grid-row: 2; }
-        .pos-10 { grid-column: 9; grid-row: 3; }
-        .pos-11 { grid-column: 9; grid-row: 4; }
-        .pos-12 { grid-column: 9; grid-row: 5; }
-        .pos-13 { grid-column: 9; grid-row: 6; }
-        .pos-14 { grid-column: 9; grid-row: 7; }
-        .pos-15 { grid-column: 9; grid-row: 8; }
-        .pos-16 { grid-column: 9; grid-row: 9; }
-        .pos-17 { grid-column: 8; grid-row: 9; }
-        .pos-18 { grid-column: 7; grid-row: 9; }
-        .pos-19 { grid-column: 6; grid-row: 9; }
-        .pos-20 { grid-column: 5; grid-row: 9; }
-        .pos-21 { grid-column: 4; grid-row: 9; }
-        .pos-22 { grid-column: 3; grid-row: 9; }
-        .pos-23 { grid-column: 2; grid-row: 9; }
-        .pos-24 { grid-column: 1; grid-row: 9; }
-        .pos-25 { grid-column: 1; grid-row: 8; }
-        .pos-26 { grid-column: 1; grid-row: 7; }
-        .pos-27 { grid-column: 1; grid-row: 6; }
-        .pos-28 { grid-column: 1; grid-row: 5; }
-        .pos-29 { grid-column: 1; grid-row: 4; }
-        .pos-30 { grid-column: 1; grid-row: 3; }
-        .pos-31 { grid-column: 1; grid-row: 2; }
+        /* Клітини-позиції */
+        .pos-0  { grid-column: 1; grid-row: 1; } .pos-1  { grid-column: 2; grid-row: 1; }
+        .pos-2  { grid-column: 3; grid-row: 1; } .pos-3  { grid-column: 4; grid-row: 1; }
+        .pos-4  { grid-column: 5; grid-row: 1; } .pos-5  { grid-column: 6; grid-row: 1; }
+        .pos-6  { grid-column: 7; grid-row: 1; } .pos-7  { grid-column: 8; grid-row: 1; }
+        .pos-8  { grid-column: 9; grid-row: 1; } .pos-9  { grid-column: 9; grid-row: 2; }
+        .pos-10 { grid-column: 9; grid-row: 3; } .pos-11 { grid-column: 9; grid-row: 4; }
+        .pos-12 { grid-column: 9; grid-row: 5; } .pos-13 { grid-column: 9; grid-row: 6; }
+        .pos-14 { grid-column: 9; grid-row: 7; } .pos-15 { grid-column: 9; grid-row: 8; }
+        .pos-16 { grid-column: 9; grid-row: 9; } .pos-17 { grid-column: 8; grid-row: 9; }
+        .pos-18 { grid-column: 7; grid-row: 9; } .pos-19 { grid-column: 6; grid-row: 9; }
+        .pos-20 { grid-column: 5; grid-row: 9; } .pos-21 { grid-column: 4; grid-row: 9; }
+        .pos-22 { grid-column: 3; grid-row: 9; } .pos-23 { grid-column: 2; grid-row: 9; }
+        .pos-24 { grid-column: 1; grid-row: 9; } .pos-25 { grid-column: 1; grid-row: 8; }
+        .pos-26 { grid-column: 1; grid-row: 7; } .pos-27 { grid-column: 1; grid-row: 6; }
+        .pos-28 { grid-column: 1; grid-row: 5; } .pos-29 { grid-column: 1; grid-row: 4; }
+        .pos-30 { grid-column: 1; grid-row: 3; } .pos-31 { grid-column: 1; grid-row: 2; }
 
+        /* ЦЕНТР ПОЛЯ */
         .board-center {
             grid-column: 2 / 9;
             grid-row: 2 / 9;
@@ -280,7 +271,6 @@
             position: relative;
         }
 
-        /* CENTRAL PLATFORM CLICKER */
         .central-dice-platform {
             background: rgba(31, 41, 55, 0.4);
             border: 2px dashed var(--accent-cyan);
@@ -291,12 +281,7 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .central-dice-platform:hover {
-            background: rgba(6, 182, 212, 0.08);
-            transform: scale(1.02);
+            transition: 0.2s;
         }
 
         .dice-row { display: flex; gap: 20px; }
@@ -311,7 +296,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), inset 0 -4px 0 #cbd5e1;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
         .platform-callout {
@@ -322,20 +307,7 @@
             color: var(--accent-green);
         }
 
-        .double-indicator {
-            position: absolute;
-            top: 20px;
-            background: var(--accent-orange);
-            color: #000;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            display: none;
-        }
-
-        /* TOKEN RENDERING HOUSING */
+        /* ТОКЕНИ (ФІШКИ) ГРАВЦІВ */
         .token-housing {
             position: absolute;
             bottom: 6px;
@@ -356,11 +328,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
 
-        /* DASHBOARDS */
+        /* БІЧНІ ДАНІ */
         .side-panel {
             flex: 1;
             min-width: 360px;
-            max-width: 460px;
+            max-width: 440px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -384,25 +356,6 @@
         }
 
         .action-hub-box { display: flex; flex-direction: column; gap: 10px; }
-
-        .panel-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 800;
-            font-size: 13px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-buy { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #000; }
-        .btn-build { background: linear-gradient(135deg, var(--accent-green), #059669); color: #000; }
-        .btn-jail { background: var(--accent-orange); color: #000; }
-        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: #fff; }
-
-        .panel-btn:disabled { opacity: 0.2; pointer-events: none; }
 
         .player-row {
             display: flex;
@@ -428,32 +381,23 @@
         }
 
         .terminal-log {
-            height: 180px;
+            height: 150px;
             overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: monospace;
             font-size: 11px;
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
 
-        .log-node {
-            padding: 6px 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-            border-left: 2px solid var(--panel-border);
-        }
-
-        .log-node.sys { border-left-color: var(--accent-cyan); color: var(--accent-cyan); }
-        .log-node.alert { border-left-color: var(--accent-red); color: var(--accent-red); }
-        .log-node.good { border-left-color: var(--accent-green); color: var(--accent-green); }
-        .log-node.warn { border-left-color: var(--accent-orange); color: var(--accent-orange); }
+        .log-node { padding: 4px 8px; background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .log-node.sys { color: var(--accent-cyan); }
+        .log-node.alert { color: var(--accent-red); }
+        .log-node.good { color: var(--accent-green); }
+        .log-node.warn { color: var(--accent-orange); }
 
         @media (max-width: 1100px) {
-            :root {
-                --cell-w: 10.5vw;
-                --cell-h: 12.5vw;
-            }
+            :root { --cell-w: 10.5vw; --cell-h: 12.5vw; }
             .side-panel { width: 100%; max-width: 100%; }
         }
     </style>
@@ -461,30 +405,39 @@
 <body>
 
     <header>
-        <h1>Монополія Про</h1>
-        <p>Локальна PVP Гра • На одному екрані</p>
+        <h1>Монополія Онлайн</h1>
+        <div id="tg-identity" style="font-size: 12px; color: var(--accent-cyan); margin-top: 5px;"></div>
     </header>
 
-    <!-- НАЛАШТУВАННЯ ЛОБІ -->
+    <!-- ЕКРАН ПІДКЛЮЧЕННЯ -->
     <div id="auth-screen">
-        <div class="auth-title">Налаштування гри (PVP)</div>
-        <div class="input-group" style="margin-bottom: 20px;">
-            <label>Кількість гравців</label>
-            <select id="player-count-select" onchange="Engine.Lobby.adjustFields(this.value)">
-                <option value="2">2 Гравці</option>
-                <option value="3">3 Гравці</option>
-                <option value="4">4 Гравці</option>
+        <div class="auth-title">Створення / Вхід в Онлайн PVP</div>
+        <div class="input-group">
+            <label>Нікнейм вашої компанії</label>
+            <input type="text" id="player-nickname" placeholder="Введіть назву компанії">
+        </div>
+        <div class="input-group">
+            <label>Оберіть стратегію (Клас)</label>
+            <select id="player-role">
+                <option value="shark">🦈 Акула Бізнесу (+$450 за коло)</option>
+                <option value="tycoon">💼 Промисловий Магнат (-30% на апгрейд філій)</option>
             </select>
         </div>
 
-        <div id="players-input-container">
-            <!-- Поля створюються динамічно -->
+        <div class="lobby-actions">
+            <button class="btn btn-primary" onclick="App.Network.initRoom(true)">Створити лобі</button>
+            <button class="btn btn-success" onclick="App.Network.initRoom(false)">Увійти за ID</button>
         </div>
 
-        <button class="btn-launch" onclick="Engine.Core.bootstrap()">Запустити матч</button>
+        <div id="waiting-room">
+            <p>Надішліть цей ID іншим гравцям для підключення:</p>
+            <div class="room-id-badge" id="room-id-display">------</div>
+            <p style="font-size: 13px; margin-bottom: 15px;">Підключено гравців: <span id="lobby-count" style="color:var(--accent-green); font-weight:900;">0</span></p>
+            <button class="btn btn-success" id="start-match-trigger" style="width: 100%; display: none;" onclick="App.Network.startMatch()">Запустити гру 🚀</button>
+        </div>
     </div>
 
-    <!-- ІГРОВЕ ПОЛЕ -->
+    <!-- ІГРОВИЙ ІНТЕРФЕЙС -->
     <div id="game-screen">
         <div class="main-container">
             
@@ -492,91 +445,97 @@
                 <div class="board-grid" id="board-grid-dom">
                     
                     <div class="board-center">
-                        <div class="double-indicator" id="double-badge">Бонус за дубль активовано</div>
-                        
-                        <div class="central-dice-platform" id="dice-interactive-trigger" onclick="Engine.Gameplay.rollDice()">
+                        <div class="central-dice-platform" id="dice-clickable-trigger" onclick="App.Gameplay.rollDice()">
                             <div class="dice-row">
                                 <div class="dice-cube" id="cube-ui-1">⚀</div>
                                 <div class="dice-cube" id="cube-ui-2">⚀</div>
                             </div>
-                            <div class="platform-callout" id="platform-callout-text">👉 Натисніть, щоб кинути</div>
+                            <div class="platform-callout" id="platform-callout-text">Завантаження...</div>
                         </div>
-
-                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">Система готова</div>
+                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">Очікування мережі</div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- БІЧНА ПАНЕЛЬ КЕРУВАННЯ -->
+            <!-- КЕРУВАННЯ ТА СТАТИСТИКА -->
             <div class="side-panel">
-                
                 <div class="card-panel" id="action-panel-wks" style="display: none; border-color: var(--accent-cyan);">
                     <h3>⚡ Доступні дії</h3>
                     <div class="action-hub-box">
-                        <button class="panel-btn btn-buy" id="hub-action-buy">Придбати актив</button>
-                        <button class="panel-btn btn-build" id="hub-action-build">Побудувати філію</button>
-                        <button class="panel-btn btn-jail" id="hub-action-jail">Сплатити заставу ($50)</button>
-                        <button class="panel-btn btn-pass" id="hub-action-pass" onclick="Engine.Gameplay.closeTurn()">Завершити хід</button>
+                        <button class="btn btn-primary" id="hub-action-main" style="width:100%; font-weight:900;"></button>
+                        <button class="btn btn-secondary" id="hub-action-pass" style="width:100%;" onclick="App.Gameplay.confirmPass()">Пропустити хід / Завершити</button>
                     </div>
                 </div>
 
                 <div class="card-panel">
-                    <h3>📊 Рахунки компаній</h3>
+                    <h3>📊 Активи корпорацій</h3>
                     <div id="leaderboard-dom-target"></div>
                 </div>
 
                 <div class="card-panel">
-                    <h3>📜 Журнал подій гри</h3>
+                    <h3>📜 Події онлайн-сесії</h3>
                     <div class="terminal-log" id="terminal-dom-target"></div>
                 </div>
-
             </div>
 
         </div>
     </div>
 
     <script>
-        const Engine = {
+        // КОНФІГУРАЦІЯ FIREBASE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const App = {
             Config: {
                 totalCells: 32,
                 startingCash: 1500,
                 baseSalary: 200,
-                jailBailoutCost: 50,
                 tokenColors: ["var(--accent-cyan)", "var(--accent-red)", "var(--accent-purple)", "var(--accent-orange)"],
                 mapData: [
                     { id: 0, name: "СТАРТ", type: "start", icon: "🚀", edge: "top" },
-                    { id: 1, name: "АТБ-Маркет", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 1, name: "АТБ-Маркет", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], group: "brown", edge: "top" },
                     { id: 2, name: "Скриня громади", type: "chest", icon: "📦", edge: "top" },
-                    { id: 3, name: "Аврора Мультимаркет", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 3, name: "Аврора", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], group: "brown", edge: "top" },
                     { id: 4, name: "Податок на дохід", type: "tax", cost: 200, icon: "🏛️", edge: "top" },
-                    { id: 5, name: "Київська залізниця", type: "railroad", price: 200, owner: null, group: "rail", edge: "top" },
-                    { id: 6, name: "АЗК OKKO", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], lvl: 0, owner: null, group: "lightblue", edge: "top" },
-                    { id: 7, name: "Шанс Альфа", type: "chance", icon: "⚡", edge: "top" },
-                    { id: 8, name: "АЗК WOG", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], lvl: 0, owner: null, group: "lightblue", edge: "top" },
+                    { id: 5, name: "Київська залізниця", type: "railroad", price: 200, group: "rail", edge: "top" },
+                    { id: 6, name: "АЗК OKKO", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], group: "lightblue", edge: "top" },
+                    { id: 7, name: "Шанс", type: "chance", icon: "⚡", edge: "top" },
+                    { id: 8, name: "АЗК WOG", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], group: "lightblue", edge: "top" },
                     { id: 9, name: "СІЗО / Тюрма", type: "jail", icon: "🚔", edge: "right" },
-                    { id: 10, name: "Rozetka", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], lvl: 0, owner: null, group: "pink", edge: "right" },
-                    { id: 11, name: "ДТЕК Енерго", type: "utility", price: 150, owner: null, group: "util", edge: "right" },
-                    { id: 12, name: "Comfy", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], lvl: 0, owner: null, group: "pink", edge: "right" },
-                    { id: 13, name: "Львівська залізниця", type: "railroad", price: 200, owner: null, group: "rail", edge: "right" },
-                    { id: 14, name: "Нова Пошта", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 10, name: "Rozetka", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], group: "pink", edge: "right" },
+                    { id: 11, name: "ДТЕК Енерго", type: "utility", price: 150, group: "util", edge: "right" },
+                    { id: 12, name: "Comfy", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], group: "pink", edge: "right" },
+                    { id: 13, name: "Львівська залізниця", type: "railroad", price: 200, group: "rail", edge: "right" },
+                    { id: 14, name: "Нова Пошта", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], group: "orange", edge: "right" },
                     { id: 15, name: "Скриня громади", type: "chest", icon: "📦", edge: "right" },
-                    { id: 16, name: "Укрпошта", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 16, name: "Укрпошта", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], group: "orange", edge: "right" },
                     { id: 17, name: "Безкоштовна парковка", type: "parking", icon: "🅿️", edge: "bottom" },
-                    { id: 18, name: "Сільпо", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], lvl: 0, owner: null, group: "red", edge: "bottom" },
-                    { id: 19, name: "Шанс Бета", type: "chance", icon: "⚡", edge: "bottom" },
-                    { id: 20, name: "Наша Ряба", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], lvl: 0, owner: null, group: "red", edge: "bottom" },
-                    { id: 21, name: "Одеський Порт (Залізниця)", type: "railroad", price: 200, owner: null, group: "rail", edge: "bottom" },
-                    { id: 22, name: "Львівські Круасани", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
-                    { id: 23, name: "Моршинська", type: "utility", price: 150, owner: null, group: "util", edge: "bottom" },
-                    { id: 24, name: "Monobank", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
+                    { id: 18, name: "Сільпо", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], group: "red", edge: "bottom" },
+                    { id: 19, name: "Шанс", type: "chance", icon: "⚡", edge: "bottom" },
+                    { id: 20, name: "Наша Ряба", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], group: "red", edge: "bottom" },
+                    { id: 21, name: "Одеський Порт", type: "railroad", price: 200, group: "rail", edge: "bottom" },
+                    { id: 22, name: "Львівські Круасани", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], group: "yellow", edge: "bottom" },
+                    { id: 23, name: "Моршинська", type: "utility", price: 150, group: "util", edge: "bottom" },
+                    { id: 24, name: "Monobank", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], group: "yellow", edge: "bottom" },
                     { id: 25, name: "Відправка в тюрму", type: "gotojail", icon: "👮", edge: "left" },
-                    { id: 26, name: "SoftServe", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], lvl: 0, owner: null, group: "green", edge: "left" },
-                    { id: 27, name: "EPAM Systems", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], lvl: 0, owner: null, group: "green", edge: "left" },
+                    { id: 26, name: "SoftServe", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], group: "green", edge: "left" },
+                    { id: 27, name: "EPAM Systems", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], group: "green", edge: "left" },
                     { id: 28, name: "Скриня громади", type: "chest", icon: "📦", edge: "left" },
-                    { id: 29, "name": "Дніпровська логістика", type: "railroad", price: 200, owner: null, group: "rail", edge: "left" },
-                    { id: 30, name: "Київстар", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], lvl: 0, owner: null, group: "darkblue", edge: "left" },
-                    { id: 31, name: "ПриватБанк", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], lvl: 0, owner: null, group: "darkblue", edge: "left" }
+                    { id: 29, name: "Дніпровська логістика", type: "railroad", price: 200, group: "rail", edge: "left" },
+                    { id: 30, name: "Київстар", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], group: "darkblue", edge: "left" },
+                    { id: 31, name: "ПриватБанк", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], group: "darkblue", edge: "left" }
                 ],
                 groupColors: {
                     brown: "#78350f", lightblue: "#0ea5e9", pink: "#ec4899", orange: "#f97316",
@@ -584,333 +543,305 @@
                     rail: "#4b5563", util: "#84cc16"
                 },
                 chanceCards: [
-                    { txt: "Рухайтеся до поля СТАРТ. Отримайте виплату.", type: "move", target: 0 },
-                    { txt: "Штраф за перевищення швидкості. Сплатіть $50.", type: "fine", cash: 50 },
-                    { txt: "Порушення у звітності. Ви відправлені в тюрму.", type: "jail" },
-                    { txt: "Податкове повернення. Отримайте $150.", type: "gift", cash: 150 },
-                    { txt: "Витрати на модернізацію. Сплатіть по $50 за кожну філію.", type: "repair", houseCost: 50 }
+                    { txt: "Податкове повернення. Отримайте +$150.", type: "gift", cash: 150 },
+                    { txt: "Штраф за порушення екологічних норм. Сплатіть $100.", type: "fine", cash: 100 },
+                    { txt: "Військові облігації принесли прибуток. Отримайте +$200.", type: "gift", cash: 200 }
                 ]
             },
 
             State: {
-                order: [],
-                turnIndex: 0,
-                players: {},
-                logs: [],
-                isRolling: false,
-                consecutiveDoubles: 0,
-                lastRollSum: 2,
-                hasPendingAction: false
+                roomId: null,
+                myId: null,
+                roomData: null,
+                localRolling: false
             },
 
-            Lobby: {
-                adjustFields: function(count) {
-                    let container = document.getElementById('players-input-container');
-                    container.innerHTML = "";
-                    for(let i = 1; i <= count; i++) {
-                        container.innerHTML += `
-                            <div class="lobby-row">
-                                <div class="input-group">
-                                    <label>Корпорація Гравця ${i}</label>
-                                    <input type="text" id="p-name-${i}" value="Компанія ${String.fromCharCode(64 + i)}">
-                                </div>
-                                <div class="input-group">
-                                    <label>Стратегія (Клас)</label>
-                                    <select id="p-role-${i}">
-                                        <option value="shark">🦈 Акула (+$450 за коло)</option>
-                                        <option value="tycoon">💼 Магнат (-30% на апгрейд)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            },
+            Network: {
+                initRoom: function(isHost) {
+                    let nick = document.getElementById('player-nickname').value.trim();
+                    if(!nick) return alert("Будь ласка, введіть назву вашої компанії!");
 
-            Core: {
-                bootstrap: function() {
-                    let count = parseInt(document.getElementById('player-count-select').value);
-                    Engine.State.players = {};
-                    Engine.State.order = [];
+                    App.State.myId = "usr_" + Math.random().toString(36).substring(2, 9);
+                    let role = document.getElementById('player-role').value;
 
-                    for(let i = 1; i <= count; i++) {
-                        let id = `p${i}`;
-                        let name = document.getElementById(`p-name-${i}`).value || `Компанія ${i}`;
-                        let role = document.getElementById(`p-role-${i}`).value;
-
-                        Engine.State.players[id] = {
-                            id: id,
-                            name: name,
-                            role: role,
-                            cash: Engine.Config.startingCash,
-                            pos: 0,
-                            color: Engine.Config.tokenColors[i - 1],
-                            inJail: 0
+                    if(isHost) {
+                        App.State.roomId = Math.floor(100000 + Math.random() * 900000).toString();
+                        let newRoom = {
+                            status: "waiting",
+                            host: App.State.myId,
+                            turnIndex: 0,
+                            order: [App.State.myId],
+                            players: {},
+                            cells: {},
+                            logs: [{ type: "sys", text: `🏢 Лобі створено компанією ${nick}. Очікування гравців.` }]
                         };
-                        Engine.State.order.push(id);
+
+                        newRoom.players[App.State.myId] = { id: App.State.myId, name: nick, role: role, cash: App.Config.startingCash, pos: 0, color: App.Config.tokenColors[0], inJail: 0 };
+                        
+                        // Ініціалізуємо порожні рівні та власників для клітин поля
+                        App.Config.mapData.forEach(c => {
+                            newRoom.cells[c.id] = { owner: "", lvl: 0 };
+                        });
+
+                        db.ref('rooms/' + App.State.roomId).set(newRoom, (err) => {
+                            if(!err) App.Network.subAndBind();
+                        });
+                    } else {
+                        let enteredId = prompt("Введіть 6-значний ID кімнати:");
+                        if(!enteredId) return;
+                        App.State.roomId = enteredId.trim();
+
+                        db.ref('rooms/' + App.State.roomId).once('value', (snap) => {
+                            if(!snap.exists()) return alert("Кімнату не знайдено!");
+                            let d = snap.val();
+                            if(d.status !== "waiting") return alert("Гра вже триває!");
+
+                            let currentPlayersCount = Object.keys(d.players).length;
+                            if(currentPlayersCount >= 4) return alert("Кімната заповнена (макс. 4 гравці)!");
+
+                            let currentOrder = d.order || [];
+                            currentOrder.push(App.State.myId);
+
+                            let joinData = {
+                                id: App.State.myId, name: nick, role: role, cash: App.Config.startingCash, pos: 0,
+                                color: App.Config.tokenColors[currentPlayersCount], inJail: 0
+                            };
+
+                            let updates = {};
+                            updates[`/players/${App.State.myId}`] = joinData;
+                            updates[`/order`] = currentOrder;
+                            updates[`/logs/${d.logs ? d.logs.length : 0}`] = { type: "sys", text: `🤝 Компанія ${nick} приєдналася до гри.` };
+
+                            db.ref('rooms/' + App.State.roomId).update(updates, (err) => {
+                                if(!err) App.Network.subAndBind();
+                            });
+                        });
                     }
+                },
 
-                    Engine.State.turnIndex = 0;
-                    Engine.State.logs.push({ type: "sys", text: "🎴 Гра почалася. Матч активовано." });
+                subAndBind: function() {
+                    document.getElementById('waiting-room').style.display = 'block';
+                    document.getElementById('room-id-display').innerText = App.State.roomId;
 
-                    document.getElementById('auth-screen').style.display = 'none';
-                    document.getElementById('game-screen').style.display = 'block';
+                    db.ref('rooms/' + App.State.roomId).on('value', (snap) => {
+                        if(!snap.exists()) return;
+                        let data = snap.val();
+                        App.State.roomData = data;
 
-                    Engine.UI.renderBoardStructure();
-                    Engine.UI.sync();
+                        document.getElementById('lobby-count').innerText = Object.keys(data.players).length;
+                        if(data.host === App.State.myId && data.status === "waiting") {
+                            document.getElementById('start-match-trigger').style.display = 'block';
+                        }
+
+                        if(data.status === "active") {
+                            document.getElementById('auth-screen').style.display = 'none';
+                            document.getElementById('game-screen').style.display = 'block';
+                            App.UI.sync();
+                        }
+                    });
+                },
+
+                startMatch: function() {
+                    if(App.State.roomData && Object.keys(App.State.roomData.players).length < 2) {
+                        return alert("Потрібно мінімум 2 гравці для запуску!");
+                    }
+                    db.ref('rooms/' + App.State.roomId).update({ status: "active" });
                 }
             },
 
             Gameplay: {
-                getCurrentPlayer: function() {
-                    let pid = Engine.State.order[Engine.State.turnIndex];
-                    return Engine.State.players[pid];
-                },
-
                 rollDice: function() {
-                    if (Engine.State.isRolling || Engine.State.hasPendingAction) return;
+                    let d = App.State.roomData;
+                    let activeId = d.order[d.turnIndex];
+                    if(activeId !== App.State.myId || App.State.localRolling || d.pendingAction) return;
 
-                    let p = Engine.Gameplay.getCurrentPlayer();
-                    Engine.State.isRolling = true;
-                    document.getElementById('platform-callout-text').innerText = "🎰 КУБИКИ КРУТЯТЬСЯ...";
+                    App.State.localRolling = true;
+                    document.getElementById('platform-callout-text').innerText = "🎲 КУБИКИ КРУТЯТЬСЯ...";
 
-                    let d1 = Math.floor(Math.random() * 6) + 1;
-                    let d2 = Math.floor(Math.random() * 6) + 1;
-                    Engine.State.lastRollSum = d1 + d2;
-
-                    const diceGraphics = { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" };
                     let ticks = 0;
-
+                    let d1 = 1, d2 = 1;
                     let loop = setInterval(() => {
-                        document.getElementById('cube-ui-1').innerText = diceGraphics[Math.floor(Math.random() * 6) + 1];
-                        document.getElementById('cube-ui-2').innerText = diceGraphics[Math.floor(Math.random() * 6) + 1];
+                        d1 = Math.floor(Math.random() * 6) + 1;
+                        d2 = Math.floor(Math.random() * 6) + 1;
+                        document.getElementById('cube-ui-1').innerText = App.UI.getDiceChar(d1);
+                        document.getElementById('cube-ui-2').innerText = App.UI.getDiceChar(d2);
                         ticks++;
 
-                        if(ticks > 10) {
+                        if(ticks > 8) {
                             clearInterval(loop);
-                            document.getElementById('cube-ui-1').innerText = diceGraphics[d1];
-                            document.getElementById('cube-ui-2').innerText = diceGraphics[d2];
-
-                            let isDouble = (d1 === d2);
-                            Engine.State.isRolling = false;
-
-                            if(p.inJail > 0) {
-                                if(isDouble) {
-                                    p.inJail = 0;
-                                    Engine.State.logs.push({ type: "good", text: `🔓 ${p.name} викидає дубль [${d1}:${d2}] та виходить на свободу!` });
-                                    Engine.State.consecutiveDoubles = 0;
-                                } else {
-                                    p.inJail--;
-                                    if(p.inJail === 0) {
-                                        p.cash -= Engine.Config.jailBailoutCost;
-                                        Engine.State.logs.push({ type: "warn", text: `🚨 Термін ув'язнення завершено. Сплачено автоматичну заставу $50 для ${p.name}.` });
-                                        Engine.Gameplay.verifySolvency(p.id);
-                                    } else {
-                                        Engine.State.logs.push({ type: "alert", text: `🚔 Дубля немає. ${p.name} залишається в тюрмі (залишилось ходів: ${p.inJail}).` });
-                                        Engine.Gameplay.closeTurn(false);
-                                        return;
-                                    }
-                                }
-                            } else {
-                                if(isDouble) {
-                                    Engine.State.consecutiveDoubles++;
-                                    if(Engine.State.consecutiveDoubles === 3) {
-                                        Engine.State.logs.push({ type: "alert", text: `🚨 3 дублі поспіль! ${p.name} затримано за фінансові махінації.` });
-                                        p.pos = 9;
-                                        p.inJail = 3;
-                                        Engine.State.consecutiveDoubles = 0;
-                                        Engine.Gameplay.closeTurn(false);
-                                        return;
-                                    }
-                                    document.getElementById('double-badge').style.display = 'block';
-                                } else {
-                                    document.getElementById('double-badge').style.display = 'none';
-                                }
-                            }
-
-                            let priorPos = p.pos;
-                            p.pos = (p.pos + d1 + d2) % Engine.Config.totalCells;
-                            Engine.State.logs.push({ type: "sys", text: `🎲 ${p.name} переходить на клітину ${p.pos} після кидка [${d1}:${d2}].` });
-
-                            if(p.pos < priorPos) {
-                                let bonus = p.role === 'shark' ? 450 : Engine.Config.baseSalary;
-                                p.cash += bonus;
-                                Engine.State.logs.push({ type: "good", text: `💸 ${p.name} пройшов повне коло! Отримано бонусом +$${bonus}.` });
-                            }
-
-                            Engine.Gameplay.evaluateTileState(p, isDouble);
+                            App.State.localRolling = false;
+                            App.Gameplay.processMove(d1, d2);
                         }
-                    }, 80);
+                    }, 100);
                 },
 
-                evaluateTileState: function(p, isDouble) {
-                    let tile = Engine.Config.mapData[p.pos];
-                    let uiHub = document.getElementById('action-panel-wks');
-                    let bBtn = document.getElementById('hub-action-buy');
-                    let uBtn = document.getElementById('hub-action-build');
-                    let jBtn = document.getElementById('hub-action-jail');
-                    let pBtn = document.getElementById('hub-action-pass');
+                processMove: function(d1, d2) {
+                    let r = App.State.roomData;
+                    let me = r.players[App.State.myId];
+                    let total = d1 + d2;
+                    let prevPos = me.pos;
+                    let nextPos = (me.pos + total) % App.Config.totalCells;
 
-                    uiHub.style.display = 'block';
-                    bBtn.style.display = 'none';
-                    uBtn.style.display = 'none';
-                    jBtn.style.display = 'none';
-                    pBtn.style.display = 'block';
-
-                    Engine.State.hasPendingAction = true;
-                    document.getElementById('dice-interactive-trigger').style.pointerEvents = 'none';
-                    document.getElementById('platform-callout-text').innerText = "⚠️ НЕОБХІДНА ДІЯ";
-                    document.getElementById('platform-callout-text').style.color = 'var(--accent-red)';
-
-                    if(p.inJail > 0) {
-                        jBtn.style.display = 'block';
-                        jBtn.innerText = "Внести заставу ($50)";
-                        jBtn.disabled = p.cash < Engine.Config.jailBailoutCost;
-                        jBtn.onclick = () => {
-                            p.cash -= Engine.Config.jailBailoutCost; p.inJail = 0;
-                            Engine.State.logs.push({ type: "good", text: `💸 ${p.name} сплатив заставу та вийшов на свободу.` });
-                            jBtn.style.display = 'none';
-                            Engine.UI.sync();
-                        };
+                    let logsCount = r.logs ? r.logs.length : 0;
+                    let updates = {};
+                    
+                    updates[`/players/${App.State.myId}/pos`] = nextPos;
+                    updates[`/lastRoll`] = { d1: d1, d2: d2, sum: total };
+                    updates[`/logs/${logsCount}`] = { type: "sys", text: `🎲 ${me.name} викидає [${d1}:${d2}] та йде на клітину ${nextPos}.` };
+                    
+                    if(nextPos < prevPos) {
+                        let bonus = me.role === 'shark' ? 450 : App.Config.baseSalary;
+                        updates[`/players/${App.State.myId}/cash`] = me.cash + bonus;
+                        updates[`/logs/${logsCount + 1}`] = { type: "good", text: `💸 ${me.name} пройшов коло! Бонус +$${bonus}` };
                     }
 
-                    if(tile.type === "property" || tile.type === "railroad" || tile.type === "utility") {
-                        if(!tile.owner) {
-                            bBtn.style.display = 'block';
-                            bBtn.innerText = `Купити ${tile.name} ($${tile.price})`;
-                            bBtn.disabled = p.cash < tile.price;
-                            bBtn.onclick = () => {
-                                p.cash -= tile.price; tile.owner = p.id; if(tile.type === "property") tile.lvl = 1;
-                                Engine.State.logs.push({ type: "good", text: `💼 ${p.name} купує об'єкт: ${tile.name}` });
-                                Engine.Gameplay.closeTurn(isDouble);
-                            };
-                        } else if(tile.owner === p.id) {
-                            if(tile.type === "property" && tile.lvl < 6) {
-                                let upgradeCost = Math.round(tile.price * 0.6);
-                                if(p.role === "tycoon") upgradeCost = Math.round(upgradeCost * 0.7);
-                                
-                                uBtn.style.display = 'block';
-                                uBtn.innerText = `Побудувати філію ($${upgradeCost})`;
-                                uBtn.disabled = p.cash < upgradeCost;
-                                uBtn.onclick = () => {
-                                    p.cash -= upgradeCost; tile.lvl++;
-                                    Engine.State.logs.push({ type: "good", text: `🏢 ${p.name} модернізує ${tile.name} до рівня ${tile.lvl}.` });
-                                    Engine.Gameplay.closeTurn(isDouble);
-                                };
-                            }
-                        } else {
-                            let landlord = Engine.State.players[tile.owner];
-                            let liability = Engine.Gameplay.calculateRentLiability(tile);
-                            bBtn.style.display = 'block';
-                            pBtn.style.display = 'none';
-                            bBtn.innerText = `Сплатити оренду для ${landlord.name} ($${liability})`;
-                            bBtn.onclick = () => {
-                                p.cash -= liability; landlord.cash += liability;
-                                Engine.State.logs.push({ type: "alert", text: `⚠️ ${p.name} сплачує оренду $${liability} власнику ${landlord.name}.` });
-                                Engine.Gameplay.verifySolvency(p.id);
-                                Engine.Gameplay.closeTurn(isDouble);
-                            };
-                        }
+                    // Перевіряємо логіку клітини
+                    let tile = App.Config.mapData[nextPos];
+                    let serverTile = r.cells[nextPos];
+
+                    if((tile.type === "property" || tile.type === "railroad" || tile.type === "utility") && !serverTile.owner) {
+                        updates[`/pendingAction`] = { type: "buy", tileId: nextPos, actor: App.State.myId };
+                    } else if(serverTile.owner && serverTile.owner !== App.State.myId) {
+                        updates[`/pendingAction`] = { type: "rent", tileId: nextPos, actor: App.State.myId };
                     } else if(tile.type === "tax") {
-                        bBtn.style.display = 'block'; pBtn.style.display = 'none';
-                        bBtn.innerText = `Сплатити податок ($${tile.cost})`;
-                        bBtn.onclick = () => {
-                            p.cash -= tile.cost;
-                            Engine.State.logs.push({ type: "alert", text: `🏛️ З рахунку ${p.name} списано податки на суму $${tile.cost}.` });
-                            Engine.Gameplay.verifySolvency(p.id);
-                            Engine.Gameplay.closeTurn(isDouble);
-                        };
-                    } else if(tile.type === "gotojail") {
-                        p.pos = 9; p.inJail = 3; Engine.State.consecutiveDoubles = 0;
-                        Engine.State.logs.push({ type: "alert", text: `🚔 ${p.name} порушує правила і відправляється в тюрму.` });
-                        Engine.Gameplay.closeTurn(false);
+                        updates[`/pendingAction`] = { type: "tax", tileId: nextPos, actor: App.State.myId };
                     } else if(tile.type === "chance" || tile.type === "chest") {
-                        Engine.Gameplay.executeRandomEvent(p);
+                        updates[`/pendingAction`] = { type: "event", tileId: nextPos, actor: App.State.myId };
+                    } else if(tile.type === "gotojail") {
+                        updates[`/players/${App.State.myId}/pos`] = 9;
+                        updates[`/players/${App.State.myId}/inJail`] = 3;
+                        updates[`/logs/${logsCount + 2}`] = { type: "alert", text: `🚔 ${me.name} затримано поліцією та відправлено в СІЗО.` };
                     }
 
-                    pBtn.innerText = "Продовжити гру";
-                    pBtn.onclick = () => { Engine.Gameplay.closeTurn(isDouble); };
-                    Engine.UI.sync();
+                    db.ref('rooms/' + App.State.roomId).update(updates);
                 },
 
-                calculateRentLiability: function(tile) {
-                    if(tile.type === "property") return tile.rent[tile.lvl];
+                handleAction: function() {
+                    let r = App.State.roomData;
+                    let action = r.pendingAction;
+                    let me = r.players[App.State.myId];
+                    let tile = App.Config.mapData[action.tileId];
+                    let serverTile = r.cells[action.tileId];
+                    let lIdx = r.logs ? r.logs.length : 0;
+
+                    let updates = {};
+
+                    if(action.type === "buy") {
+                        if(me.cash < tile.price) return alert("Недостатньо коштів!");
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - tile.price;
+                        updates[`/cells/${action.tileId}/owner`] = App.State.myId;
+                        if(tile.type === "property") updates[`/cells/${action.tileId}/lvl`] = 1;
+                        updates[`/logs/${lIdx}`] = { type: "good", text: `💼 ${me.name} придбав актив: ${tile.name}.` };
+                        updates[`/pendingAction`] = null;
+                        App.Gameplay.nextTurn(updates);
+                    } 
+                    else if(action.type === "build") {
+                        let cost = Math.round(tile.price * 0.6);
+                        if(me.role === "tycoon") cost = Math.round(cost * 0.7);
+                        if(me.cash < cost) return alert("Недостатньо грошей для модернізації!");
+
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - cost;
+                        updates[`/cells/${action.tileId}/lvl`] = serverTile.lvl + 1;
+                        updates[`/logs/${lIdx}`] = { type: "good", text: `🏢 ${me.name} побудував нову філію в ${tile.name} (Рівень: ${serverTile.lvl + 1}).` };
+                        updates[`/pendingAction`] = null;
+                        App.Gameplay.nextTurn(updates);
+                    }
+                    else if(action.type === "rent") {
+                        let owner = r.players[serverTile.owner];
+                        let rentCost = App.Gameplay.calcRent(tile, serverTile, r);
+                        
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - rentCost;
+                        updates[`/players/${serverTile.owner}/cash`] = owner.cash + rentCost;
+                        updates[`/logs/${lIdx}`] = { type: "alert", text: `⚠️ ${me.name} сплатив оренду $${rentCost} для компанії ${owner.name}.` };
+                        updates[`/pendingAction`] = null;
+                        
+                        App.Gameplay.checkBankruptcy(me.cash - rentCost, updates);
+                        App.Gameplay.nextTurn(updates);
+                    }
+                    else if(action.type === "tax") {
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - tile.cost;
+                        updates[`/logs/${lIdx}`] = { type: "alert", text: `🏛️ Компанія ${me.name} сплатила державні податки на суму $${tile.cost}.` };
+                        updates[`/pendingAction`] = null;
+                        
+                        App.Gameplay.checkBankruptcy(me.cash - tile.cost, updates);
+                        App.Gameplay.nextTurn(updates);
+                    }
+                    else if(action.type === "event") {
+                        let card = App.Config.chanceCards[Math.floor(Math.random() * App.Config.chanceCards.length)];
+                        let finalCash = me.cash;
+                        if(card.type === "gift") finalCash += card.cash;
+                        if(card.type === "fine") finalCash -= card.cash;
+
+                        updates[`/players/${App.State.myId}/cash`] = finalCash;
+                        updates[`/logs/${lIdx}`] = { type: "warn", text: `📜 ПОДІЯ: ${card.txt}` };
+                        updates[`/pendingAction`] = null;
+
+                        if(card.type === "fine") App.Gameplay.checkBankruptcy(finalCash, updates);
+                        App.Gameplay.nextTurn(updates);
+                    }
+                },
+
+                confirmPass: function() {
+                    let r = App.State.roomData;
+                    if(r.order[r.turnIndex] !== App.State.myId || r.pendingAction) return;
+                    let updates = {};
+                    App.Gameplay.nextTurn(updates);
+                    db.ref('rooms/' + App.State.roomId).update(updates);
+                },
+
+                nextTurn: function(updates) {
+                    let r = App.State.roomData;
+                    updates[`/turnIndex`] = (r.turnIndex + 1) % r.order.length;
+                },
+
+                calcRent: function(tile, serverTile, r) {
+                    if(tile.type === "property") return tile.rent[serverTile.lvl];
                     if(tile.type === "railroad") {
-                        let count = Engine.Config.mapData.filter(t => t.group === "rail" && t.owner === tile.owner).length;
-                        return 25 * Math.pow(2, count - 1);
+                        let owned = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "rail" && r.cells[k].owner === serverTile.owner).length;
+                        return 25 * Math.pow(2, owned - 1);
                     }
                     if(tile.type === "utility") {
-                        let count = Engine.Config.mapData.filter(t => t.group === "util" && t.owner === tile.owner).length;
-                        return Engine.State.lastRollSum * (count === 2 ? 10 : 4);
+                        let owned = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "util" && r.cells[k].owner === serverTile.owner).length;
+                        let diceSum = r.lastRoll ? r.lastRoll.sum : 7;
+                        return diceSum * (owned === 2 ? 10 : 4);
                     }
                     return 0;
                 },
 
-                executeRandomEvent: function(p) {
-                    let cards = Engine.Config.chanceCards;
-                    let selected = cards[Math.floor(Math.random() * cards.length)];
-                    Engine.State.logs.push({ type: "warn", text: `📜 ПОДІЯ [${p.name}]: "${selected.txt}"` });
-
-                    if(selected.type === "move") {
-                        p.pos = selected.target;
-                        if(p.pos === 0) p.cash += Engine.Config.baseSalary;
-                    } else if(selected.type === "fine") {
-                        p.cash -= selected.cash; Engine.Gameplay.verifySolvency(p.id);
-                    } else if(selected.type === "gift") {
-                        p.cash += selected.cash;
-                    } else if(selected.type === "jail") {
-                        p.pos = 9; p.inJail = 3;
-                    } else if(selected.type === "repair") {
-                        let branches = Engine.Config.mapData.filter(t => t.owner === p.id && t.lvl).reduce((acc, curr) => acc + curr.lvl, 0);
-                        p.cash -= (branches * selected.houseCost); Engine.Gameplay.verifySolvency(p.id);
-                    }
-                },
-
-                verifySolvency: function(pid) {
-                    let target = Engine.State.players[pid];
-                    if(target.cash < 0) {
-                        Engine.State.logs.push({ type: "alert", text: `💀 БАНКРУТСТВО: ${target.name} повністю збанкрутував!` });
-                        alert(`💀 Процедура ліквідації. Гравця ${target.name} дискваліфіковано.`);
+                checkBankruptcy: function(balance, updates) {
+                    if(balance < 0) {
+                        let me = App.State.roomData.players[App.State.myId];
+                        let lIdx = App.State.roomData.logs ? App.State.roomData.logs.length : 0;
+                        updates[`/logs/${lIdx + 5}`] = { type: "alert", text: `💀 КРАХ: Компанія ${me.name} повністю збанкрутувала!` };
                         
-                        // Wipe Assets
-                        Engine.Config.mapData.forEach(tile => {
-                            if(tile.owner === pid) { tile.owner = null; tile.lvl = 0; }
+                        // Звільняємо активи
+                        App.Config.mapData.forEach(c => {
+                            if(App.State.roomData.cells[c.id].owner === App.State.myId) {
+                                updates[`/cells/${c.id}/owner`] = "";
+                                updates[`/cells/${c.id}/lvl`] = 0;
+                            }
                         });
                         
-                        Engine.State.order = Engine.State.order.filter(id => id !== pid);
-                        if(Engine.State.order.length <= 1) {
-                            let winner = Engine.State.players[Engine.State.order[0]];
-                            alert(`🏆 МАТЧ ЗАВЕРШЕНО. Переможець: ${winner.name}!`);
-                            location.reload();
-                        }
+                        let filteredOrder = App.State.roomData.order.filter(id => id !== App.State.myId);
+                        updates[`/order`] = filteredOrder;
+                        updates[`/players/${App.State.myId}`] = null;
                     }
-                },
-
-                closeTurn: function(wasDouble) {
-                    document.getElementById('action-panel-wks').style.display = 'none';
-                    Engine.State.hasPendingAction = false;
-
-                    let p = Engine.Gameplay.getCurrentPlayer();
-
-                    if(wasDouble && p.inJail === 0 && Engine.State.consecutiveDoubles > 0) {
-                        Engine.State.logs.push({ type: "sys", text: `🔄 Бонус за дубль. ${p.name} отримує право на ще один кидок.` });
-                    } else {
-                        Engine.State.consecutiveDoubles = 0;
-                        document.getElementById('double-badge').style.display = 'none';
-                        Engine.State.turnIndex = (Engine.State.turnIndex + 1) % Engine.State.order.length;
-                    }
-
-                    Engine.UI.sync();
                 }
             },
 
             UI: {
-                renderBoardStructure: function() {
-                    let grid = document.getElementById('board-grid-dom');
-                    let centralHubHTML = grid.querySelector('.board-center').outerHTML;
-                    grid.innerHTML = centralHubHTML;
+                hasGridRendered: false,
 
-                    Engine.Config.mapData.forEach(cell => {
+                getDiceChar: function(num) {
+                    return { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" }[num] || "⚀";
+                },
+
+                renderBoardLayout: function() {
+                    let grid = document.getElementById('board-grid-dom');
+                    let centerHTML = grid.querySelector('.board-center').outerHTML;
+                    grid.innerHTML = centerHTML;
+
+                    App.Config.mapData.forEach(cell => {
                         let block = document.createElement('div');
                         block.className = `cell pos-${cell.id}`;
                         
@@ -919,7 +850,7 @@
                         else if(cell.id <= 24) block.classList.add('row-bottom');
                         else block.classList.add('col-left');
 
-                        let barColor = Engine.Config.groupColors[cell.group] || "transparent";
+                        let barColor = App.Config.groupColors[cell.group] || "transparent";
 
                         block.innerHTML = `
                             <div class="cell-stripe" style="background:${barColor}"></div>
@@ -932,31 +863,38 @@
                         `;
                         grid.appendChild(block);
                     });
+                    App.UI.hasGridRendered = true;
                 },
 
                 sync: function() {
-                    let curPlayer = Engine.Gameplay.getCurrentPlayer();
+                    if(!App.UI.hasGridRendered) App.UI.renderBoardLayout();
 
-                    Engine.Config.mapData.forEach(cell => {
-                        let tokenContainer = document.getElementById(`tokens-layer-${cell.id}`);
-                        if(tokenContainer) tokenContainer.innerHTML = "";
+                    let r = App.State.roomData;
+                    let activeId = r.order[r.turnIndex];
+                    let activePlayer = r.players[activeId];
 
-                        let ownerTag = document.getElementById(`owner-tag-${cell.id}`);
-                        let infraBox = document.getElementById(`infra-layer-${cell.id}`);
+                    // Синхронізація об'єктів та філій
+                    App.Config.mapData.forEach(c => {
+                        let sCell = r.cells[c.id];
+                        let tokenBox = document.getElementById(`tokens-layer-${c.id}`);
+                        if(tokenBox) tokenBox.innerHTML = "";
 
-                        if(cell.owner) {
-                            let parsedOwner = Engine.State.players[cell.owner];
-                            if(ownerTag) {
-                                ownerTag.innerText = parsedOwner.name.substring(0, 5);
-                                ownerTag.style.background = parsedOwner.color;
-                                ownerTag.style.color = '#000';
+                        let ownerTag = document.getElementById(`owner-tag-${c.id}`);
+                        let infraBox = document.getElementById(`infra-layer-${c.id}`);
+
+                        if(sCell && sCell.owner) {
+                            let ownerInfo = r.players[sCell.owner];
+                            if(ownerTag && ownerInfo) {
+                                ownerTag.innerText = ownerInfo.name.substring(0, 4);
+                                ownerTag.style.background = ownerInfo.color;
+                                ownerTag.style.color = "#000";
                             }
-                            if(infraBox && cell.type === 'property') {
+                            if(infraBox && c.type === 'property') {
                                 infraBox.innerHTML = "";
-                                if(cell.lvl === 6) {
+                                if(sCell.lvl === 6) {
                                     infraBox.innerHTML = `<div class="hotel-node"></div>`;
                                 } else {
-                                    for(let i = 1; i < cell.lvl; i++) {
+                                    for(let i = 1; i < sCell.lvl; i++) {
                                         infraBox.innerHTML += `<div class="house-node"></div>`;
                                     }
                                 }
@@ -967,50 +905,110 @@
                         }
                     });
 
-                    // Відображення маркерів гравців
-                    Object.values(Engine.State.players).forEach(p => {
+                    // Рендеринг фішок
+                    Object.values(r.players).forEach(p => {
+                        if(!p) return;
                         let token = document.createElement('div');
                         token.className = "map-token";
                         token.style.background = p.color;
-                        let spot = document.getElementById(`tokens-layer-${p.pos}`);
-                        if(spot) spot.appendChild(token);
+                        let layer = document.getElementById(`tokens-layer-${p.pos}`);
+                        if(layer) layer.appendChild(token);
                     });
 
                     // Оновлення таблиці лідерів
-                    let boardRoom = document.getElementById('leaderboard-dom-target');
-                    boardRoom.innerHTML = "";
-                    Engine.State.order.forEach(pid => {
-                        let p = Engine.State.players[pid];
-                        let roleUkr = p.role === 'shark' ? 'АКУЛА' : 'МАГНАТ';
-                        boardRoom.innerHTML += `
-                            <div class="player-row ${curPlayer.id === p.id ? 'active-border' : ''}">
-                                <div><strong style="color:${p.color}">${p.name}</strong><br><small style="color:var(--text-gray);">${roleUkr}</small></div>
+                    let lb = document.getElementById('leaderboard-dom-target');
+                    lb.innerHTML = "";
+                    r.order.forEach(pid => {
+                        let p = r.players[pid];
+                        if(!p) return;
+                        lb.innerHTML += `
+                            <div class="player-row ${activeId === p.id ? 'active-border' : ''}">
+                                <div><strong style="color:${p.color}">${p.name} ${p.id === App.State.myId ? '(Ви)' : ''}</strong><br><small style="color:var(--text-gray);">${p.role === 'shark' ? 'АКУЛА':'МАГНАТ'}</small></div>
                                 <div class="player-assets-cash">$${p.cash}</div>
                             </div>
                         `;
                     });
 
-                    // Текст поточного ходу
-                    document.getElementById('turn-descriptor').innerText = `Хід компанії: ${curPlayer.name}`;
-                    
-                    let targetClicker = document.getElementById('dice-interactive-trigger');
-                    if(!Engine.State.hasPendingAction) {
-                        targetClicker.style.pointerEvents = 'auto';
-                        document.getElementById('platform-callout-text').innerText = "👉 Натисніть, щоб кинути";
-                        document.getElementById('platform-callout-text').style.color = curPlayer.color;
-                    } else {
-                        targetClicker.style.pointerEvents = 'none';
+                    // Стан кубиків з сервера
+                    if(r.lastRoll && !App.State.localRolling) {
+                        document.getElementById('cube-ui-1').innerText = App.UI.getDiceChar(r.lastRoll.d1);
+                        document.getElementById('cube-ui-2').innerText = App.UI.getDiceChar(r.lastRoll.d2);
                     }
 
-                    // Оновлення логів
+                    // Налаштування інтерфейсу дій
+                    document.getElementById('turn-descriptor').innerText = `Зараз діє: ${activePlayer ? activePlayer.name : '---'}`;
+                    
+                    let actPanel = document.getElementById('action-panel-wks');
+                    let actBtn = document.getElementById('hub-action-main');
+                    let passBtn = document.getElementById('hub-action-pass');
+                    let trigger = document.getElementById('dice-clickable-trigger');
+
+                    actPanel.style.display = 'none';
+                    trigger.style.pointerEvents = 'none';
+                    document.getElementById('platform-callout-text').innerText = "Очікування ходу";
+                    document.getElementById('platform-callout-text').style.color = 'var(--text-gray)';
+
+                    if(activeId === App.State.myId) {
+                        if(r.pendingAction) {
+                            actPanel.style.display = 'block';
+                            passBtn.style.display = 'none';
+                            
+                            let tile = App.Config.mapData[r.pendingAction.tileId];
+                            if(r.pendingAction.type === 'buy') {
+                                actBtn.innerText = `Купити ${tile.name} ($${tile.price})`;
+                                actBtn.onclick = () => App.Gameplay.handleAction();
+                            } else if(r.pendingAction.type === 'rent') {
+                                let rent = App.Gameplay.calcRent(tile, r.cells[tile.id], r);
+                                actBtn.innerText = `Сплатити оренду ($${rent})`;
+                                actBtn.onclick = () => App.Gameplay.handleAction();
+                            } else if(r.pendingAction.type === 'tax') {
+                                actBtn.innerText = `Сплатити збір ($${tile.cost})`;
+                                actBtn.onclick = () => App.Gameplay.handleAction();
+                            } else if(r.pendingAction.type === 'event') {
+                                actBtn.innerText = `Відкрити картку подій`;
+                                actBtn.onclick = () => App.Gameplay.handleAction();
+                            }
+                        } else {
+                            // Перевірка можливості побудови філії перед ходом на своїй клітині
+                            let curTile = App.Config.mapData[activePlayer.pos];
+                            let curServerTile = r.cells[activePlayer.pos];
+                            
+                            if(curServerTile && curServerTile.owner === App.State.myId && curTile.type === 'property' && curServerTile.lvl < 6) {
+                                actPanel.style.display = 'block';
+                                passBtn.style.display = 'block';
+                                let cost = Math.round(curTile.price * 0.6);
+                                if(activePlayer.role === 'tycoon') cost = Math.round(cost * 0.7);
+                                
+                                actBtn.innerText = `Апгрейд філії ($${cost})`;
+                                r.pendingAction = { type: 'build', tileId: curTile.id };
+                                actBtn.onclick = () => App.Gameplay.handleAction();
+                            }
+
+                            trigger.style.pointerEvents = 'auto';
+                            document.getElementById('platform-callout-text').innerText = "👉 Тисни, щоб кинути кубики";
+                            document.getElementById('platform-callout-text').style.color = activePlayer.color;
+                        }
+                    }
+
+                    // Логи
                     let logMonitor = document.getElementById('terminal-dom-target');
-                    logMonitor.innerHTML = Engine.State.logs.map(l => `<div class="log-node ${l.type}">${l.text}</div>`).reverse().join('');
+                    if(r.logs) {
+                        logMonitor.innerHTML = r.logs.map(l => `<div class="log-node ${l.type}">${l.text}</div>`).reverse().join('');
+                    }
                 }
             }
         };
 
-        // Запуск лобі при першому завантаженні сторінки
-        window.onload = () => { Engine.Lobby.adjustFields(2); };
+        // Інтеграція з Telegram Web App
+        if(window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            if(tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                let uname = tg.initDataUnsafe.user.first_name || tg.initDataUnsafe.user.username;
+                document.getElementById('player-nickname').value = uname;
+                document.getElementById('tg-identity').innerText = `Акаунт: @${tg.initDataUnsafe.user.username || 'user'}`;
+            }
+        }
     </script>
 </body>
 </html>
