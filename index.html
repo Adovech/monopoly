@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тобнута Монополія Онлайн Next Level</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --panel-color: #16213e;
+            --accent-color: #e94560;
+            --text-color: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        h1 { margin: 5px 0; font-size: 20px; text-shadow: 0 0 10px var(--accent-color); text-align: center; }
+        .screen { width: 100%; max-width: 400px; display: none; flex-direction: column; align-items: center; }
+        .active-screen { display: flex; }
+
+        /* Поле */
+        #board {
+            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+            gap: 4px; width: 100%; aspect-ratio: 1; background: #0f3460; padding: 6px;
+            border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 10px;
+        }
+        .cell {
+            background-color: var(--panel-color); border-radius: 4px; display: flex;
+            flex-direction: column; justify-content: space-between; align-items: center;
+            padding: 4px; font-size: 9px; font-weight: bold; position: relative; text-align: center; border: 2px solid transparent;
+        }
+        .cell-center { grid-column: 2 / 5; grid-row: 2 / 5; background: transparent; }
+        .cell .price { color: #f0a500; font-size: 8px; }
+        
+        .tokens-container { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; margin-top: auto; }
+        .token { width: 12px; height: 12px; border-radius: 50%; border: 1px solid white; box-shadow: 0 0 4px black; }
+
+        .player-status {
+            width: 100%; background: var(--panel-color); padding: 8px; border-radius: 6px;
+            margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; box-sizing: border-box;
+        }
+        .player-status.active { border: 2px solid var(--accent-color); box-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
+        
+        .btn {
+            padding: 10px 20px; background: var(--accent-color); color: white; border: none;
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; margin: 5px;
+        }
+        .btn:disabled { background: #555; cursor: not-allowed; }
+        input { padding: 10px; border-radius: 5px; border: none; margin: 5px; width: 80%; text-align: center; font-size: 16px; }
+
+        #dice-result { font-size: 24px; margin: 5px 0; font-weight: bold; }
+        #log { width: 100%; height: 60px; background: #00000055; border-radius: 5px; padding: 5px; font-size: 11px; overflow-y: auto; box-sizing: border-box; }
+
+        /* Кольори власників */
+        .owner-0 { border-color: #ff4136 !important; }
+        .owner-1 { border-color: #0074d9 !important; }
+        .owner-2 { border-color: #2ecc40 !important; }
+        .owner-3 { border-color: #ffdc00 !important; }
+
+        @keyframes roll { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .rolling { animation: roll 0.4s linear; }
+    </style>
+</head>
+<body>
+
+    <h1>🎲 TOBNUTA MULTIPLAYER 🎲</h1>
+
+    <div id="lobby-screen" class="screen active-screen">
+        <input type="text" id="username-input" placeholder="Твій нікнейм">
+        <hr style="width: 100%; border-color: #333;">
+        <button class="btn" id="btn-create">Створити нову кімнату</button>
+        <p style="margin: 5px;">або</p>
+        <input type="text" id="room-id-input" placeholder="Код кімнати (напр. 1234)">
+        <button class="btn" style="background: #0074d9;" id="btn-join">Увійти в кімнату</button>
+    </div>
+
+    <div id="wait-screen" class="screen">
+        <h2>Кімната: <span id="room-code-display" style="color: var(--accent-color);">xxxx</span></h2>
+        <p>Очікування гравців...</p>
+        <div id="connected-players-list" style="margin-bottom: 20px;"></div>
+        <button id="start-game-btn" class="btn" style="display: none;">Почати гру 🚀</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="players-info" style="width: 100%;"></div>
+        <div id="board"></div>
+
+        <div style="display: flex; width: 100%; justify-content: space-around; align-items: center;">
+            <button id="roll-btn" class="btn" disabled>Кубик</button>
+            <div id="dice-result">🎲 ?</div>
+            <button id="action-btn" class="btn" disabled>Купити</button>
+        </div>
+        <div id="log">Очікування синхронізації...</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // ТВІЙ ОСОБЛИВИЙ КОНФІГ
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_l8PXKFOi8xD1-49rZOtsH1I3uYOrwfs",
+            authDomain: "monopoliya-dbc97.firebaseapp.com",
+            projectId: "monopoliya-dbc97",
+            storageBucket: "monopoliya-dbc97.firebasestorage.app",
+            messagingSenderId: "939364818613",
+            appId: "1:939364818613:web:8082c7b5f81b3dc76328fc",
+            measurementId: "G-3S79MNCZ67"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Логіка мапи
+        const cellMapping = [0, 1, 2, 3, 4, 9, 14, 19, 24, 23, 22, 21, 20, 15, 10, 5];
+        const boardData = [
+            { name: "СТАРТ", price: 0, rent: 0, type: "start" },
+            { name: "АТБ", price: 60, rent: 20, type: "prop" },
+            { name: "ШАУРМА", price: 80, rent: 30, type: "prop" },
+            { name: "ПОДАТОК", price: 0, rent: 50, type: "tax" },
+            { name: "СІЛЬПО", price: 100, rent: 40, type: "prop" },
+            { name: "КФC", price: 120, rent: 50, type: "prop" },
+            { name: "ТЦ КІНГ", price: 140, rent: 60, type: "prop" },
+            { name: "КАЗИНО", price: 0, rent: 0, type: "casino" },
+            { name: "ОФІС", price: 160, rent: 70, type: "prop" },
+            { name: "МАК", price: 180, rent: 80, type: "prop" },
+            { name: "ЗАПРАВКА", price: 200, rent: 90, type: "prop" },
+            { name: "ШАНС", price: 0, rent: 0, type: "chance" },
+            { name: "МЕТРО", price: 220, rent: 100, type: "prop" },
+            { name: "ЕПІЦЕНТР", price: 240, rent: 110, type: "prop" },
+            { name: "ROZETKA", price: 260, rent: 130, type: "prop" },
+            { name: "ТЮРМА", price: 0, rent: 0, type: "jail" }
+        ];
+        const playerColors = ["#ff4136", "#0074d9", "#2ecc40", "#ffdc00"];
+
+        let myName = tg.initDataUnsafe?.user?.first_name || "";
+        let myIdInRoom = null;
+        let roomId = null;
+        let isHost = false;
+        let gameState = null;
+
+        if(myName) document.getElementById('username-input').value = myName;
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+        }
+
+        // Прив'язка кнопок
+        document.getElementById('btn-create').onclick = createRoom;
+        document.getElementById('btn-join').onclick = joinRoom;
+        document.getElementById('start-game-btn').onclick = hostStartGame;
+        document.getElementById('roll-btn').onclick = rollDice;
+        document.getElementById('action-btn').onclick = buyProperty;
+
+        function createRoom() {
+            myName = document.getElementById('username-input').value.trim() || "Гравець";
+            roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            isHost = true;
+            myIdInRoom = 0;
+
+            const initialData = {
+                status: "waiting",
+                host: myName,
+                currentPlayerIdx: 0,
+                diceRolled: false,
+                lastLog: "Створено кімнату. Очікуємо гравців...",
+                players: [{
+                    id: 0, name: myName, color: playerColors[0], money: 1000, pos: 0, isBankrupt: false
+                }],
+                owners: Array(16).fill(-1)
+            };
+
+            set(ref(db, 'rooms/' + roomId), initialData).then(() => {
+                document.getElementById('room-code-display').innerText = roomId;
+                document.getElementById('start-game-btn').style.display = 'block';
+                switchScreen('wait-screen');
+                listenToRoom();
+            });
+        }
+
+        function joinRoom() {
+            myName = document.getElementById('username-input').value.trim() || "Гість";
+            roomId = document.getElementById('room-id-input').value.trim();
+            if(!roomId) return alert("Введи код кімнати!");
+
+            const roomDbRef = ref(db, 'rooms/' + roomId);
+            get(roomDbRef).then((snapshot) => {
+                if(!snapshot.exists()) return alert("Кімнату не знайдено!");
+                const data = snapshot.val();
+                if(data.status !== "waiting") return alert("Гра вже почалася!");
+                if(data.players.length >= 4) return alert("Кімната заповнена!");
+
+                myIdInRoom = data.players.length;
+                const newPlayer = {
+                    id: myIdInRoom, name: myName, color: playerColors[myIdInRoom], money: 1000, pos: 0, isBankrupt: false
+                };
+                
+                set(ref(db, `rooms/${roomId}/players/${myIdInRoom}`), newPlayer).then(() => {
+                    document.getElementById('room-code-display').innerText = roomId;
+                    switchScreen('wait-screen');
+                    listenToRoom();
+                });
+            });
+        }
+
+        function listenToRoom() {
+            onValue(ref(db, 'rooms/' + roomId), (snapshot) => {
+                gameState = snapshot.val();
+                if(!gameState) return;
+
+                if(gameState.status === "waiting") {
+                    const listEl = document.getElementById('connected-players-list');
+                    listEl.innerHTML = gameState.players.map(p => `<div style="color:${p.color}; font-weight:bold;">● ${p.name}</div>`).join('');
+                } 
+                else if(gameState.status === "playing") {
+                    if(document.getElementById('game-screen').style.display !== 'flex') {
+                        switchScreen('game-screen');
+                        buildBoard();
+                    }
+                    syncGame();
+                }
+            });
+        }
+
+        function hostStartGame() {
+            if(gameState.players.length < 2) return alert("Треба мінімум 2 гравці!");
+            update(ref(db, 'rooms/' + roomId), { status: 'playing' });
+        }
+
+        function buildBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            let cellsArray = Array(25).fill(null);
+            
+            boardData.forEach((data, index) => {
+                cellsArray[cellMapping[index]] = { ...data, id: index };
+            });
+
+            for(let i=0; i<25; i++) {
+                if (i === 6) {
+                    const center = document.createElement('div');
+                    center.classList.add('cell-center');
+                    center.id = "center-panel";
+                    boardEl.appendChild(center);
+                    continue;
+                }
+                if ([7,8,11,12,13,16,17,18].includes(i)) continue;
+
+                const cellObj = cellsArray[i];
+                const cellEl = document.createElement('div');
+                cellEl.classList.add('cell');
+                
+                if(cellObj) {
+                    cellEl.id = `cell-${cellObj.id}`;
+                    cellEl.innerHTML = `<div>${cellObj.name}</div>` + 
+                        (cellObj.price > 0 ? `<div class="price">$${cellObj.price}</div>` : '') +
+                        `<div class="tokens-container" id="tokens-${cellObj.id}"></div>`;
+                } else {
+                    cellEl.style.visibility = 'hidden';
+                }
+                boardEl.appendChild(cellEl);
+            }
+        }
+
+        function syncGame() {
+            const infoEl = document.getElementById('players-info');
+            infoEl.innerHTML = gameState.players.map((p, idx) => {
+                const activeClass = idx === gameState.currentPlayerIdx && !p.isBankrupt ? 'active' : '';
+                return `<div class="player-status ${activeClass}">
+                    <span style="color: ${p.color}; font-weight:bold;">● ${p.name} ${idx === myIdInRoom ? '(Ти)' : ''}</span>
+                    <span>${p.isBankrupt ? '💀 БАНКРУТ' : `<b>$${p.money}</b>`}</span>
+                </div>`;
+            }).join('');
+
+            boardData.forEach((_, i) => {
+                const container = document.getElementById(`tokens-${i}`);
+                if(container) container.innerHTML = '';
+            });
+            gameState.players.forEach(p => {
+                if (p.isBankrupt) return;
+                const container = document.getElementById(`tokens-${p.pos}`);
+                if(container) {
+                    const t = document.createElement('div'); t.classList.add('token');
+                    t.style.backgroundColor = p.color; container.appendChild(t);
+                }
+            });
+
+            gameState.owners.forEach((ownerId, cellId) => {
+                const cellEl = document.getElementById(`cell-${cellId}`);
+                if(cellEl && ownerId !== -1) {
+                    cellEl.className = `cell owner-${ownerId}`;
+                    cellEl.style.backgroundColor = playerColors[ownerId] + "22";
+                }
+            });
+
+            document.getElementById('log').innerHTML = gameState.lastLog;
+            if(gameState.lastDice) document.getElementById('dice-result').innerText = `🎲 ${gameState.lastDice}`;
+
+            const isMyTurn = (gameState.currentPlayerIdx === myIdInRoom);
+            const rollBtn = document.getElementById('roll-btn');
+            const actionBtn = document.getElementById('action-btn');
+
+            if(isMyTurn && !gameState.isGameOver) {
+                rollBtn.disabled = gameState.diceRolled;
+                
+                const curPlayer = gameState.players[myIdInRoom];
+                const curCell = boardData[curPlayer.pos];
+                const hasOwner = gameState.owners[curPlayer.pos] !== -1;
+
+                if(gameState.diceRolled && curCell.type === 'prop' && !hasOwner && curPlayer.money >= curCell.price) {
+                    actionBtn.disabled = false;
+                    actionBtn.innerText = `Купити за $${curCell.price}`;
+                } else {
+                    actionBtn.disabled = true;
+                    actionBtn.innerText = 'Купити';
+                }
+            } else {
+                rollBtn.disabled = true;
+                actionBtn.disabled = true;
+            }
+        }
+
+        function rollDice() {
+            const dice = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-result').classList.add('rolling');
+            tg.HapticFeedback.impactOccurred('medium');
+
+            setTimeout(() => {
+                document.getElementById('dice-result').classList.remove('rolling');
+                
+                let updates = {};
+                let p = { ...gameState.players[myIdInRoom] };
+                
+                p.pos = (p.pos + dice) % 16;
+                let logStr = `🚶 <b>${p.name}</b> кинув ${dice} і став на <b>${boardData[p.pos].name}</b>.`;
+
+                if(p.pos < (gameState.players[myIdInRoom].pos) && p.pos !== 0) {
+                    p.money += 200;
+                    logStr += `<br>💰 Отримав $200 за коло!`;
+                }
+
+                const cell = boardData[p.pos];
+                const ownerId = gameState.owners[p.pos];
+
+                if(cell.type === 'tax') {
+                    p.money -= cell.rent;
+                    logStr += `<br>💸 Сплачено податок $${cell.rent}`;
+                    p = checkBankruptcyLocal(p, updates);
+                } else if(cell.type === 'chance') {
+                    const r = Math.random() > 0.5 ? 150 : -150;
+                    p.money += r;
+                    logStr += r > 0 ? `<br>🍀 Шанс! Знайшов $150` : `<br>🎒 Шанс! Втратив $150`;
+                    p = checkBankruptcyLocal(p, updates);
+                } else if(cell.type === 'casino') {
+                    if(Math.random() > 0.5) { p.money += 250; logStr += `<br>🎰 Казино! Виграш $250!`; }
+                    else { p.money -= 200; logStr += `<br>🎰 Казино! Програш $200`; p = checkBankruptcyLocal(p, updates); }
+                } else if(cell.type === 'prop' && ownerId !== -1 && ownerId !== myIdInRoom) {
+                    const owner = gameState.players[ownerId];
+                    if(!owner.isBankrupt) {
+                        p.money -= cell.rent;
+                        updates[`players/${ownerId}/money`] = owner.money + cell.rent;
+                        logStr += `<br>🏨 Сплачено оренду $${cell.rent} для ${owner.name}`;
+                        p = checkBankruptcyLocal(p, updates);
+                    }
+                }
+
+                updates[`players/${myIdInRoom}`] = p;
+                updates[`lastDice`] = dice;
+                updates[`diceRolled`] = true;
+                updates[`lastLog`] = logStr;
+
+                update(ref(db, 'rooms/' + roomId), updates).then(() => {
+                    const autoPass = cell.type !== 'prop' || ownerId !== -1;
+                    if(autoPass) setTimeout(endTurn, 1500);
+                });
+
+            }, 400);
+        }
+
+        function buyProperty() {
+            let p = { ...gameState.players[myIdInRoom] };
+            const cell = boardData[p.pos];
+            p.money -= cell.price;
+            
+            let updates = {};
+            updates[`players/${myIdInRoom}`] = p;
+            updates[`owners/${p.pos}`] = myIdInRoom;
+            updates[`lastLog`] = `🏢 <b>${p.name}</b> купив <b>${cell.name}</b> за $${cell.price}!`;
+            
+            update(ref(db, 'rooms/' + roomId), updates).then(() => {
+                setTimeout(endTurn, 1000);
+            });
+        }
+
+        function checkBankruptcyLocal(player, updates) {
+            if(player.money < 0) {
+                player.isBankrupt = true;
+                gameState.lastLog += `<br>💀💀💀 <b>${player.name} ЗБАНКРУТУВАВ!</b>`;
+                gameState.owners.forEach((ownerId, cellId) => {
+                    if(ownerId === player.id) updates[`owners/${cellId}`] = -1;
+                });
+            }
+            return player;
+        }
+
+        function endTurn() {
+            get(ref(db, 'rooms/' + roomId)).then((snap) => {
+                const currentData = snap.val();
+                let nextIdx = currentData.currentPlayerIdx;
+                const total = currentData.players.length;
+
+                const alivePlayers = currentData.players.filter(pl => !pl.isBankrupt);
+                if(alivePlayers.length <= 1) {
+                    update(ref(db, 'rooms/' + roomId), {
+                        isGameOver: true,
+                        lastLog: `🎉🎉 <b>ГРА ЗАВЕРШЕНА! Переміг магнат ${alivePlayers[0].name}!</b> 🎉🎉`
+                    });
+                    return;
+                }
+
+                do {
+                    nextIdx = (nextIdx + 1) % total;
+                } while (currentData.players[nextIdx].isBankrupt);
+
+                update(ref(db, 'rooms/' + roomId), {
+                    currentPlayerIdx: nextIdx,
+                    diceRolled: false
+                });
+            });
+        }
+    </script>
+</body>
+</html>
