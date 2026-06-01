@@ -16,7 +16,7 @@
             --panel-border: #1e293b;
             --inner-shadow: rgba(0, 0, 0, 0.6);
             
-            /* Світлові акценти (UI & Класи) */
+            /* Світлові акценти */
             --accent-cyan: #06b6d4;
             --accent-blue: #3b82f6;
             --accent-purple: #a855f7;
@@ -30,13 +30,11 @@
             --text-muted: #64748b;
             --text-dark: #0f172a;
 
-            /* Розміри клітин для десктопу (динамічно масштабуються через медіа-запити) */
             --cell-w: 100px;
             --cell-h: 130px;
             --board-size: calc(var(--cell-h) * 2 + var(--cell-w) * 7 + 36px);
         }
 
-        /* Базове скидання та глобальні налаштування */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -58,7 +56,6 @@
             overflow-x: hidden;
         }
 
-        /* Заголовок та брендинг */
         header {
             text-align: center;
             margin-bottom: 20px;
@@ -72,8 +69,8 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
             background-clip: text;
+            -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
         }
@@ -86,7 +83,6 @@
             letter-spacing: 1px;
         }
 
-        /* ЕКРАН АВТОРИЗАЦІЇ ТА ЛОБІ */
         #auth-screen {
             background: var(--panel-bg);
             border: 2px solid var(--panel-border);
@@ -148,7 +144,6 @@
             margin-top: 25px;
         }
 
-        /* Кнопки */
         .ui-btn {
             padding: 16px 24px;
             border: none;
@@ -174,7 +169,6 @@
         .ui-btn-secondary:hover { background: #2d3d52; }
         .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
-        /* Очікування в лобі */
         #waiting-area {
             display: none;
             margin-top: 30px;
@@ -197,7 +191,6 @@
             display: inline-block;
         }
 
-        /* ОСНОВНИЙ ІГРОВИЙ ЕКРАН */
         #game-screen {
             display: none;
             width: 100%;
@@ -215,7 +208,6 @@
             width: 100%;
         }
 
-        /* КАРТА МОНОПОЛІЇ */
         .board-viewport {
             background: #02040a;
             padding: 16px;
@@ -236,7 +228,6 @@
             height: 100%;
         }
 
-        /* Адаптивність клітин під борти поля */
         .cell-unit {
             background: var(--panel-bg);
             border: 1px solid rgba(255, 255, 255, 0.01);
@@ -251,7 +242,6 @@
             transition: background 0.2s;
         }
 
-        /* Індикатори груп (кольорові смужки) */
         .cell-stripe-indicator { position: absolute; background: transparent; z-index: 1; }
         .border-top-side .cell-stripe-indicator { top: 0; left: 0; right: 0; height: 14px; }
         .border-right-side .cell-stripe-indicator { right: 0; top: 0; bottom: 0; width: 14px; }
@@ -286,7 +276,6 @@
             z-index: 2;
         }
 
-        /* Рівні модернізації (Будинки / Філії) */
         .cell-level-container { position: absolute; display: flex; gap: 2px; z-index: 3; }
         .border-top-side .cell-level-container { top: 18px; left: 6px; }
         .border-right-side .cell-level-container { right: 18px; top: 6px; flex-direction: column; }
@@ -296,7 +285,6 @@
         .infrastructure-house { width: 7px; height: 7px; background: var(--accent-green); border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
         .infrastructure-hotel { width: 16px; height: 7px; background: var(--accent-red); border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        /* Власники клітин */
         .cell-owner-label {
             position: absolute;
             font-size: 8px;
@@ -313,7 +301,6 @@
         .border-bottom-side .cell-owner-label { top: 18px; }
         .border-left-side .cell-owner-label { right: 18px; }
 
-        /* Позиціонування кутів і сторін сітки на 32 клітини */
         .pos-0  { grid-column: 1; grid-row: 1; }  .pos-1  { grid-column: 2; grid-row: 1; }
         .pos-2  { grid-column: 3; grid-row: 1; }  .pos-3  { grid-column: 4; grid-row: 1; }
         .pos-4  { grid-column: 5; grid-row: 1; }  .pos-5  { grid-column: 6; grid-row: 1; }
@@ -331,7 +318,6 @@
         .pos-28 { grid-column: 1; grid-row: 5; }  .pos-29 { grid-column: 1; grid-row: 4; }
         .pos-30 { grid-column: 1; grid-row: 3; }  .pos-31 { grid-column: 1; grid-row: 2; }
 
-        /* СЕРЕДИНА КАРТИ (КОНТРОЛЛЕР КУБИКІВ) */
         .board-center-core {
             grid-column: 2 / 9;
             grid-row: 2 / 9;
@@ -415,7 +401,6 @@
             text-transform: uppercase;
         }
 
-        /* СЛОТИ ДЛЯ ФІШОК НА КЛІТИНАХ */
         .cell-tokens-tray {
             position: absolute;
             bottom: 6px;
@@ -438,7 +423,6 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* БІЧНА СИСТЕМНА ПАНЕЛЬ (СТАТИСТИКА, ЛОГИ, ДІЇ) */
         .side-control-panel {
             flex: 1;
             min-width: 380px;
@@ -467,10 +451,8 @@
             font-weight: 800;
         }
 
-        /* Робочий хаб дій */
         .hub-action-layout { display: flex; flex-direction: column; gap: 12px; }
 
-        /* Таблиця корпорацій */
         .leaderboard-row {
             display: flex;
             justify-content: space-between;
@@ -499,7 +481,6 @@
             font-size: 17px;
         }
 
-        /* Консоль транзакцій */
         .terminal-log-flow {
             height: 180px;
             overflow-y: auto;
@@ -511,7 +492,6 @@
             padding-right: 5px;
         }
 
-        /* Кастомізація скроллбару логів */
         .terminal-log-flow::-webkit-scrollbar { width: 4px; }
         .terminal-log-flow::-webkit-scrollbar-track { background: transparent; }
         .terminal-log-flow::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
@@ -522,7 +502,6 @@
         .log-line.good { color: var(--accent-green); border-left: 2px solid var(--accent-green); }
         .log-line.warn { color: var(--accent-orange); border-left: 2px solid var(--accent-orange); }
 
-        /* АДАПТИВНІСТЬ ДЛЯ СЕГМЕНТУ МОБІЛЬНИХ ДЕВАЙСІВ (TELEGRAM MINI APPS) */
         @media (max-width: 1150px) {
             :root {
                 --cell-w: 10.2vw;
@@ -554,7 +533,7 @@
         
         <div class="form-group">
             <label>Назва вашої корпорації</label>
-            <input type="text" id="input-corp-name" placeholder="Наприклад: UA Capital, Трейдери..." maxlength="16">
+            <input type="text" id="input-corp-name" placeholder="Наприклад: UA Capital..." maxlength="16">
         </div>
         
         <div class="form-group">
@@ -628,46 +607,73 @@
     </div>
 
     <script>
+        // Адаптовано під твою базу даних
+        const firebaseConfig = {
+            apiKey: "ВСТАВ_СЮДЬ_ТВІЙ_API_KEY_З_НАЛАШТУВАНЬ_FIREBASE", 
+            authDomain: "monopoliya-dbc97.firebaseapp.com",
+            databaseURL: "https://monopoliya-dbc97-default-rtdb.firebaseio.com", 
+            projectId: "monopoliya-dbc97",
+            storageBucket: "monopoliya-dbc97.appspot.com",
+            messagingSenderId: "565017441113", // Зчитано з твого проекту
+            appId: "ВСТАВ_СЮДЬ_ТВІЙ_APP_ID_З_НАЛАШТУВАНЬ_FIREBASE"
+        };
+
+        // ТА НАЙВАЖЛИВІША ЛІТЕРА "db", ЯКУ МИ ВИПРАВИЛИ:
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(); 
+
+        // Запуск Telegram Web App логіки
+        let tgUser = "Гравець";
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            if(window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                tgUser = window.Telegram.WebApp.initDataUnsafe.user.username || window.Telegram.WebApp.initDataUnsafe.user.first_name;
+            }
+            document.getElementById('tg-user-badge').innerText = "Telegram сесія: @" + tgUser;
+            document.getElementById('input-corp-name').value = tgUser;
+        }
+
         const App = {
             Config: {
                 totalCells: 32,
                 baseSalary: 200,
+                startingCash: 1500,
                 tokenColors: ["var(--accent-cyan)", "var(--accent-pink)", "var(--accent-purple)", "var(--accent-orange)"],
                 
-                // АБСОЛЮТНО ПОВНА БАЗА ДАНИХ ПОЛЯ НА 32 КЛІТИНИ З РЕНТНИМИ СТАВКАМИ ДО 5 РІВНЯ
                 mapData: [
-                    { id: 0, name: "Стартова Точка", type: "start", icon: "🚀", edge: "top" },
-                    { id: 1, name: "ATB Market", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], group: "brown", edge: "top" },
-                    { id: 2, name: "Скриня Громади", type: "chest", icon: "📦", edge: "top" },
-                    { id: 3, name: "Аврора Мультимаркет", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], group: "brown", edge: "top" },
-                    { id: 4, name: "Венчурний Податок", type: "tax", cost: 200, icon: "⚡", edge: "top" },
-                    { id: 5, name: "OKKO АЗС", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], group: "orange", edge: "top" },
-                    { id: 6, name: "Крипто Шанс", type: "chance", icon: "🎰", edge: "top" },
-                    { id: 7, name: "WOG АЗС", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], group: "orange", edge: "top" },
-                    { id: 8, name: "Гауптвахта / СІЗО", type: "jail", icon: "🚔", edge: "right" },
-                    { id: 9, name: "Rozetka", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], group: "pink", edge: "right" },
-                    { id: 10, name: "ДТЕК Енерго", type: "utility", price: 150, group: "util", edge: "right" },
-                    { id: 11, name: "Comfy", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], group: "pink", edge: "right" },
-                    { id: 12, name: "Фінансовий Шанс", type: "chance", icon: "🎲", edge: "right" },
-                    { id: 13, name: "Нова Пошта", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], group: "yellow", edge: "right" },
-                    { id: 14, name: "Укрпошта", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], group: "yellow", edge: "right" },
-                    { id: 15, name: "Податкова Інспекція", type: "tax", cost: 150, icon: "🏛️", edge: "right" },
-                    { id: 16, name: "Вільна Парковка", type: "parking", icon: "🅿️", edge: "bottom" },
-                    { id: 17, name: "Сільпо", type: "property", price: 360, rent: [35, 175, 500, 1100, 1300, 1500], group: "red", edge: "bottom" },
-                    { id: 18, name: "Скриня Громади", type: "chest", icon: "📦", edge: "bottom" },
-                    { id: 19, name: "Наша Ряба", type: "property", price: 380, rent: [40, 200, 550, 1200, 1400, 1700], group: "red", edge: "bottom" },
-                    { id: 20, name: "Крипто Шанс", type: "chance", icon: "🎰", edge: "bottom" },
-                    { id: 21, name: "Lviv Croissants", type: "property", price: 420, rent: [45, 220, 600, 1300, 1500, 1850], group: "lightblue", edge: "bottom" },
-                    { id: 22, name: "Моршинська", type: "utility", price: 150, group: "util", edge: "bottom" },
-                    { id: 23, name: "Monobank", type: "property", price: 460, rent: [50, 240, 650, 1400, 1600, 2000], group: "lightblue", edge: "bottom" },
-                    { id: 24, name: "Офшорна Зона (Митниця)", type: "gotojail", icon: "🛂", edge: "left" },
-                    { id: 25, name: "SoftServe", type: "property", price: 520, rent: [55, 260, 700, 1500, 1800, 2200], group: "green", edge: "left" },
-                    { id: 26, name: "EPAM Systems", type: "property", price: 560, rent: [60, 280, 750, 1600, 1900, 2400], group: "green", edge: "left" },
-                    { id: 27, name: "Інвестиційний Шанс", type: "chance", icon: "📈", edge: "left" },
-                    { id: 28, name: "Київстар", type: "property", price: 620, rent: [70, 320, 850, 1800, 2100, 2600], group: "purple", edge: "left" },
-                    { id: 29, name: "ПриватБанк", type: "property", price: 700, rent: [100, 400, 1000, 2200, 2500, 3200], group: "purple", edge: "left" },
-                    { id: 30, name: "Скриня Громади", type: "chest", icon: "📦", edge: "left" },
-                    { id: 31, name: "Національний Банк UA", type: "utility", price: 200, group: "util", edge: "left" }
+                    { id: 0, name: "Стартова Точка", type: "start", icon: "🚀" },
+                    { id: 1, name: "ATB Market", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], group: "brown" },
+                    { id: 2, name: "Скриня Громади", type: "chest", icon: "📦" },
+                    { id: 3, name: "Аврора", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], group: "brown" },
+                    { id: 4, name: "Венчурний Податок", type: "tax", cost: 200, icon: "⚡" },
+                    { id: 5, name: "OKKO АЗС", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], group: "orange" },
+                    { id: 6, name: "Крипто Шанс", type: "chance", icon: "🎰" },
+                    { id: 7, name: "WOG АЗС", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], group: "orange" },
+                    { id: 8, name: "Гауптвахта / СІЗО", type: "jail", icon: "🚔" },
+                    { id: 9, name: "Rozetka", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], group: "pink" },
+                    { id: 10, name: "ДТЕК Енерго", type: "utility", price: 150, group: "util", icon: "💡" },
+                    { id: 11, name: "Comfy", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], group: "pink" },
+                    { id: 12, name: "Фінансовий Шанс", type: "chance", icon: "🎲" },
+                    { id: 13, name: "Нова Пошта", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], group: "yellow" },
+                    { id: 14, name: "Укрпошта", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], group: "yellow" },
+                    { id: 15, name: "Податкова", type: "tax", cost: 150, icon: "🏛️" },
+                    { id: 16, name: "Вільна Парковка", type: "parking", icon: "🅿️" },
+                    { id: 17, name: "Сільпо", type: "property", price: 360, rent: [35, 175, 500, 1100, 1300, 1500], group: "red" },
+                    { id: 18, name: "Скриня Громади", type: "chest", icon: "📦" },
+                    { id: 19, name: "Наша Ряба", type: "property", price: 380, rent: [40, 200, 550, 1200, 1400, 1700], group: "red" },
+                    { id: 20, name: "Крипто Шанс", type: "chance", icon: "🎰" },
+                    { id: 21, name: "Lviv Croissants", type: "property", price: 420, rent: [45, 220, 600, 1300, 1500, 1850], group: "lightblue" },
+                    { id: 22, name: "Моршинська", type: "utility", price: 150, group: "util", icon: "💧" },
+                    { id: 23, name: "Monobank", type: "property", price: 460, rent: [50, 240, 650, 1400, 1600, 2000], group: "lightblue" },
+                    { id: 24, name: "Офшорна Зона", type: "gotojail", icon: "🛂" },
+                    { id: 25, name: "SoftServe", type: "property", price: 520, rent: [55, 260, 700, 1500, 1800, 2200], group: "green" },
+                    { id: 26, name: "EPAM Systems", type: "property", price: 560, rent: [60, 280, 750, 1600, 1900, 2400], group: "green" },
+                    { id: 27, name: "Інвестиційний Шанс", type: "chance", icon: "📈" },
+                    { id: 28, name: "Київстар", type: "property", price: 620, rent: [70, 320, 850, 1800, 2100, 2600], group: "purple" },
+                    { id: 29, name: "ПриватБанк", type: "property", price: 700, rent: [100, 400, 1000, 2200, 2500, 3200], group: "purple" },
+                    { id: 30, name: "Скриня Громади", type: "chest", icon: "📦" },
+                    { id: 31, name: "Нацбанк UA", type: "utility", price: 200, group: "util", icon: "🏛️" }
                 ],
                 groupColors: {
                     brown: "#54382b", orange: "#ea580c", pink: "#db2777", yellow: "#ca8a04",
@@ -691,7 +697,6 @@
             },
 
             Network: {
-                // Створення кімнати хостом
                 createRoom: function() {
                     let nick = document.getElementById('input-corp-name').value.trim();
                     if(!nick) return alert("Помилка: Введіть назву вашої корпорації!");
@@ -701,7 +706,7 @@
                     App.State.roomId = Math.floor(100000 + Math.random() * 900000).toString();
 
                     let startingCash = App.Config.startingCash;
-                    if(role === 'banker') startingCash = 2000; // Бонус класу банкіра
+                    if(role === 'banker') startingCash = 2000;
 
                     let initialRoomStructure = {
                         status: "waiting",
@@ -725,7 +730,6 @@
                         inJail: 0
                     };
 
-                    // Заповнюємо нульову сітку власності на сервері
                     App.Config.mapData.forEach(tile => {
                         initialRoomStructure.cells[tile.id] = { owner: "", lvl: 0 };
                     });
@@ -739,7 +743,6 @@
                     });
                 },
 
-                // Вхід за введеним ID
                 joinRoomPrompt: function() {
                     let nick = document.getElementById('input-corp-name').value.trim();
                     if(!nick) return alert("Помилка: Спочатку введіть назву вашої корпорації!");
@@ -788,7 +791,6 @@
                     });
                 },
 
-                // Підписка на стрім змін з бази даних
                 connectAndListen: function() {
                     document.getElementById('waiting-area').style.display = 'block';
                     document.getElementById('lobby-code-display').innerText = App.State.roomId;
@@ -803,7 +805,6 @@
                         let currentCount = Object.keys(data.players).length;
                         document.getElementById('lobby-connected-counter').innerText = currentCount;
 
-                        // Тільки хост керує стартом
                         if(data.host === App.State.myId && data.status === "waiting") {
                             document.getElementById('btn-matchmaker-start').style.display = 'block';
                         }
@@ -817,7 +818,6 @@
                     });
                 },
 
-                // Запуск гри хостом
                 startMatch: function() {
                     if(!App.State.roomData || Object.keys(App.State.roomData.players).length < 2) {
                         return alert("Для повноцінної PVP гри необхідно як мінімум 2 гравці!");
@@ -827,7 +827,6 @@
             },
 
             Gameplay: {
-                // Розрахунок кубиків з локальною анімацією
                 rollDice: function() {
                     let r = App.State.roomData;
                     let activeId = r.order[r.turnIndex];
@@ -836,7 +835,6 @@
                     let me = r.players[App.State.myId];
                     let logIdx = r.logs ? r.logs.length : 0;
 
-                    // Обробка тюрми перед кидком
                     if(me.inJail > 0) {
                         let payJail = confirm(`Корпорація в СІЗО. Залишилось ходів: ${me.inJail}. Сплатити $100 за заставу, щоб вийти зараз?`);
                         if(payJail) {
@@ -877,7 +875,6 @@
                     }, 80);
                 },
 
-                // Переміщення фішки та вибір екшену клітини
                 finalizeDiceMove: function(d1, d2) {
                     let r = App.State.roomData;
                     let me = r.players[App.State.myId];
@@ -895,7 +892,6 @@
                         text: `🎲 ${me.name} викидає [${d1}:${d2}] та переміщує штаб-квартиру на клітину ${targetPos}.` 
                     };
 
-                    // Фіксація проходження кола (СТАРТ)
                     if(targetPos < oldPos) {
                         let circleBonus = me.role === 'shark' ? 450 : App.Config.baseSalary;
                         updates[`/players/${App.State.myId}/cash`] = me.cash + circleBonus;
@@ -908,7 +904,6 @@
                     let tileObj = App.Config.mapData[targetPos];
                     let tileServerState = r.cells[targetPos];
 
-                    // Аналізатор логіки клітин поля
                     if((tileObj.type === "property" || tileObj.type === "utility") && !tileServerState.owner) {
                         updates[`/pendingAction`] = { type: "buy", tileId: targetPos, actor: App.State.myId };
                     } 
@@ -922,18 +917,17 @@
                         updates[`/pendingAction`] = { type: "event", tileId: targetPos, actor: App.State.myId };
                     } 
                     else if(tileObj.type === "gotojail") {
-                        updates[`/players/${App.State.myId}/pos`] = 8; // Індекс клітини СІЗО
-                        updates[`/players/${App.State.myId}/inJail`] = 3; // Бан на 3 ходи
+                        updates[`/players/${App.State.myId}/pos`] = 8;
+                        updates[`/players/${App.State.myId}/inJail`] = 3;
                         updates[`/logs/${currentLogsCount + 2}`] = { 
                             type: "alert", 
-                            text: `🚔 Крах махінацій! Компанію ${me.name} арештовано податковою поліцією та відправлено в СІЗО.` 
+                            text: `🚔 Крах махінацій! Компанію ${me.name} арештовано та відправлено в СІЗО.` 
                         };
                     }
 
                     db.ref('rooms/' + App.State.roomId).update(updates);
                 },
 
-                // Виконання поточної транзакції/дії на сервері
                 executeBusinessAction: function() {
                     let r = App.State.roomData;
                     let act = r.pendingAction;
@@ -945,28 +939,28 @@
                     let updates = {};
 
                     if(act.type === "buy") {
-                        if(me.cash < tile.price) return alert("У вашої корпорації дефіцит бюджету! Недостатньо готівки.");
+                        if(me.cash < tile.price) return alert("У вашої корпорації дефіцит бюджету!");
                         
                         updates[`/players/${App.State.myId}/cash`] = me.cash - tile.price;
                         updates[`/cells/${act.tileId}/owner`] = App.State.myId;
                         if(tile.type === "property") updates[`/cells/${act.tileId}/lvl`] = 1;
                         
-                        updates[`/logs/${logLength}`] = { type: "good", text: `💼 ${me.name} поглинає новий актив: ${tile.name} за $${tile.price}.` };
+                        updates[`/logs/${logLength}`] = { type: "good", text: `💼 ${me.name} поглинає актив: ${tile.name} за $${tile.price}.` };
                         updates[`/pendingAction`] = null;
                         App.Gameplay.nextTurn(updates);
                         db.ref('rooms/' + App.State.roomId).update(updates);
                     } 
                     else if(act.type === "build") {
                         let buildCost = Math.round(tile.price * 0.6);
-                        if(me.role === "tycoon") buildCost = Math.round(buildCost * 0.7); // Скидка магната
+                        if(me.role === "tycoon") buildCost = Math.round(buildCost * 0.7);
 
-                        if(me.cash < buildCost) return alert("Брак ліквідності для інвестицій у модернізацію!");
+                        if(me.cash < buildCost) return alert("Брак ліквідності для модернізації!");
 
                         updates[`/players/${App.State.myId}/cash`] = me.cash - buildCost;
                         updates[`/cells/${act.tileId}/lvl`] = serverTile.lvl + 1;
                         updates[`/logs/${logLength}`] = { 
                             type: "good", 
-                            text: `🏢 ${me.name} відкриває філію в ${tile.name}. Рівень активу підвищено до ${serverTile.lvl + 1}.` 
+                            text: `🏢 ${me.name} відкриває філію в ${tile.name}. Рівень підвищено до ${serverTile.lvl + 1}.` 
                         };
                         updates[`/pendingAction`] = null;
                         App.Gameplay.nextTurn(updates);
@@ -1014,7 +1008,6 @@
                     }
                 },
 
-                // Завершення ходу без дій
                 confirmPass: function() {
                     let r = App.State.roomData;
                     if(r.order[r.turnIndex] !== App.State.myId || r.pendingAction) return;
@@ -1023,19 +1016,16 @@
                     db.ref('rooms/' + App.State.roomId).update(updates);
                 },
 
-                // Передача черги ходу наступному живому гравцю
                 nextTurn: function(updates) {
                     let r = App.State.roomData;
                     updates[`/turnIndex`] = (r.turnIndex + 1) % r.order.length;
                 },
 
-                // Динамічний калькулятор вартості ренти
                 calculateRentFormula: function(tile, serverTile, r) {
                     if(tile.type === "property") {
                         return tile.rent[serverTile.lvl] || tile.rent[0];
                     }
                     if(tile.type === "utility") {
-                        // Рахуємо кількість комунальних підприємств у власника
                         let count = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "util" && r.cells[k].owner === serverTile.owner).length;
                         let cubesSum = r.lastRoll ? r.lastRoll.sum : 7;
                         return cubesSum * (count === 3 ? 15 : 6);
@@ -1043,7 +1033,6 @@
                     return 0;
                 },
 
-                // Система відстеження дефолту корпорацій
                 evaluateBankruptcyState: function(balance, updates) {
                     if(balance < 0) {
                         let me = App.State.roomData.players[App.State.myId];
@@ -1051,10 +1040,9 @@
                         
                         updates[`/logs/${logL + 4}`] = { 
                             type: "alert", 
-                            text: `💀 ЛІКВІДАЦІЯ: Корпорація ${me.name} оголосила про повне дефолтне банкрутство! Всі активи анульовано.` 
+                            text: `💀 ЛІКВІДАЦІЯ: Корпорація ${me.name} оголосила про банкрутство! Всі активи анульовано.` 
                         };
 
-                        // Повне очищення власності збанкрутілого гравця
                         App.Config.mapData.forEach(tile => {
                             if(App.State.roomData.cells[tile.id].owner === App.State.myId) {
                                 updates[`/cells/${tile.id}/owner`] = "";
@@ -1066,13 +1054,12 @@
                         updates[`/order`] = updatedOrder;
                         updates[`/players/${App.State.myId}`] = null;
                         
-                        alert("Капітуляція! Ваша корпорація збанкрутувала. Гру завершено.");
+                        alert("Капітуляція! Ваша корпорація збанкрутувала.");
                     }
                 }
             },
 
             UI: {
-                // Побудова сітки 32 клітин у DOM
                 buildLayoutMatrix: function() {
                     let container = document.getElementById('board-grid-dom-target');
                     let coreHTML = container.querySelector('.board-center-core').outerHTML;
@@ -1107,7 +1094,6 @@
                     return { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" }[n] || "⚀";
                 },
 
-                // Головний двигун рендерингу та синхронізації
                 syncRealtimeData: function() {
                     if(!App.State.gridRendered) App.UI.buildLayoutMatrix();
 
@@ -1115,7 +1101,6 @@
                     let activeId = r.order[r.turnIndex];
                     let activeCorp = r.players[activeId];
 
-                    // Очищення та заповнення власників і філій
                     App.Config.mapData.forEach(tile => {
                         let serverTile = r.cells[tile.id];
                         let tray = document.getElementById(`tray-box-${tile.id}`);
@@ -1147,7 +1132,6 @@
                         }
                     });
 
-                    // Рендеринг фішок лідерів ринку
                     Object.values(r.players).forEach(p => {
                         if(!p) return;
                         let pawn = document.createElement('div');
@@ -1157,7 +1141,6 @@
                         if(currentTray) currentTray.appendChild(pawn);
                     });
 
-                    // Оновлення лідерборду фінансів
                     let leaderboardContainer = document.getElementById('leaderboard-in-game-target');
                     leaderboardContainer.innerHTML = "";
                     r.order.forEach(id => {
@@ -1174,13 +1157,11 @@
                         `;
                     });
 
-                    // Синхронізація результатів кубиків
                     if(r.lastRoll && !App.State.localRolling) {
                         document.getElementById('cube-node-1').innerText = App.UI.getDiceSymbol(r.lastRoll.d1);
                         document.getElementById('cube-node-2').innerText = App.UI.getDiceSymbol(r.lastRoll.d2);
                     }
 
-                    // Контроль прав ходу
                     document.getElementById('turn-global-indicator').innerText = `Ринковий хід: ${activeCorp ? activeCorp.name : 'Визначення...'}`;
                     
                     let panel = document.getElementById('action-workspace-card');
@@ -1215,7 +1196,6 @@
                                 primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             }
                         } else {
-                            // Перевірка можливості будівництва філії на своїй поточної клітині
                             let myCurrentTile = App.Config.mapData[activeCorp.pos];
                             let myServerTile = r.cells[activeCorp.pos];
 
@@ -1236,14 +1216,12 @@
                         }
                     }
 
-                    // Оновлення логів транзакцій
                     let logsContainer = document.getElementById('terminal-log-target');
                     if(r.logs) {
                         logsContainer.innerHTML = r.logs.map(l => `<div class="log-line ${l.type}">${l.text}</div>`).reverse().join('');
                     }
                 }
             }
-            
         };
     </script>
 </body>
