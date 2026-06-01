@@ -1,27 +1,27 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Monopoly Cyber Syndicate 2026</title>
+    <title>Monopoly Ultra Realtime Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
     <style>
         :root {
-            --bg-main: #030712;
-            --panel-inner: #0b0f19;
-            --panel-border: #1f293d;
-            --accent-neon: #00f0ff;
+            --bg-dark: #090d16;
+            --panel-bg: #111827;
+            --panel-border: #1f2937;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
             --accent-green: #10b981;
-            --accent-purple: #a855f7;
+            --accent-purple: #8b5cf6;
             --accent-orange: #f97316;
-            --accent-crimson: #ef4444;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --accent-red: #ef4444;
+            --text-light: #f9fafb;
+            --text-gray: #9ca3af;
             
-            --cell-w: 110px;
-            --cell-h: 110px;
-            --board-size: calc(var(--cell-w) * 7 + 30px);
+            --cell-w: 95px;
+            --cell-h: 115px;
+            --board-size: calc(var(--cell-w) * 7 + var(--cell-h) * 2 + 30px);
         }
 
         * {
@@ -34,24 +34,14 @@
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
             padding: 15px;
             overflow-x: hidden;
-        }
-
-        .neon-grid-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: -1;
-            pointer-events: none;
         }
 
         header {
@@ -63,84 +53,76 @@
         header h1 {
             font-size: 28px;
             font-weight: 900;
-            letter-spacing: 3px;
             text-transform: uppercase;
-            background: linear-gradient(135deg, var(--accent-neon), var(--accent-purple), var(--accent-green));
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.4));
+            filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));
         }
 
         header p {
-            font-size: 12px;
-            color: var(--text-muted);
+            font-size: 11px;
+            color: var(--text-gray);
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-top: 4px;
         }
 
-        /* ЕКРАН АВТОРИЗАЦІЇ */
+        /* AUTH SCREEN */
         #auth-screen {
-            background: var(--panel-inner);
+            background: var(--panel-bg);
             border: 2px solid var(--panel-border);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 35px;
             width: 100%;
-            max-width: 520px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.05);
+            max-width: 500px;
+            margin-top: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             z-index: 20;
-            margin-top: 40px;
         }
 
-        .form-title {
+        .auth-title {
             font-size: 18px;
             font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--panel-border);
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--panel-border);
             padding-bottom: 10px;
-            color: var(--accent-neon);
         }
 
-        .input-block {
+        .input-group {
             margin-bottom: 20px;
         }
 
-        .input-block label {
+        .input-group label {
             display: block;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            color: var(--text-muted);
+            color: var(--text-gray);
             margin-bottom: 8px;
-            letter-spacing: 1px;
         }
 
-        .input-block input, .input-block select {
+        .input-group input, .input-group select {
             width: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: #030712;
             border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 14px 18px;
+            border-radius: 10px;
+            padding: 14px;
             color: #fff;
             font-size: 15px;
             outline: none;
             transition: 0.2s;
         }
 
-        .role-details-box {
-            background: rgba(255, 255, 255, 0.02);
-            border-left: 3px solid var(--accent-purple);
-            padding: 12px 16px;
-            border-radius: 0 12px 12px 0;
-            margin-top: 10px;
-            font-size: 13px;
-            color: #d1d5db;
-            line-height: 1.6;
+        .input-group input:focus {
+            border-color: var(--accent-cyan);
         }
 
-        .btn-core {
-            background: linear-gradient(135deg, var(--accent-neon) 0%, var(--accent-purple) 100%);
+        .btn-launch {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
             color: #000;
             font-weight: 900;
             font-size: 15px;
@@ -148,22 +130,21 @@
             letter-spacing: 1px;
             padding: 16px;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             width: 100%;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3);
-            transition: 0.2s ease;
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.2);
+            transition: 0.2s;
         }
 
-        /* ІГРОВИЙ ЕКРАН */
+        /* GAME LAYOUT */
         #game-screen {
             display: none;
             width: 100%;
-            max-width: 1400px;
-            z-index: 10;
+            max-width: 1600px;
         }
 
-        .main-layout {
+        .main-container {
             display: flex;
             gap: 25px;
             justify-content: center;
@@ -171,95 +152,109 @@
             flex-wrap: wrap;
         }
 
-        .board-container {
-            background: #020205;
+        .board-wrapper {
+            background: #030712;
             padding: 12px;
-            border-radius: 28px;
-            box-shadow: 0 35px 70px rgba(0,0,0,0.9), 0 0 40px rgba(0,240,255,0.03);
-            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            border: 2px solid var(--panel-border);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.9);
         }
 
+        /* 9x9 Grid Layout */
         .board-grid {
             display: grid;
-            grid-template-columns: repeat(7, var(--cell-w));
-            grid-template-rows: repeat(7, var(--cell-h));
-            gap: 5px;
-            width: var(--board-size);
-            height: var(--board-size);
+            grid-template-columns: var(--cell-h) repeat(7, var(--cell-w)) var(--cell-h);
+            grid-template-rows: var(--cell-h) repeat(7, var(--cell-w)) var(--cell-h);
+            gap: 4px;
+            width: 100%;
         }
 
         .cell {
-            background: var(--panel-inner);
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 10px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 6px;
+            padding: 6px;
             position: relative;
+            overflow: hidden;
         }
 
+        /* Dynamic Stripes Orientation based on edge */
         .cell-stripe {
             position: absolute;
-            top: 0; left: 0; right: 0; height: 6px;
-            border-radius: 10px 10px 0 0;
+            background: transparent;
+            z-index: 1;
         }
 
+        /* Top Edge */
+        .row-top .cell-stripe { top: 0; left: 0; right: 0; height: 12px; }
+        /* Right Edge */
+        .col-right .cell-stripe { right: 0; top: 0; bottom: 0; width: 12px; }
+        /* Bottom Edge */
+        .row-bottom .cell-stripe { bottom: 0; left: 0; right: 0; height: 12px; }
+        /* Left Edge */
+        .col-left .cell-stripe { left: 0; top: 0; bottom: 0; width: 12px; }
+
         .cell-title {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 800;
             text-transform: uppercase;
             text-align: center;
-            color: #f3f4f6;
             width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 5px;
+            margin-top: 14px;
+            z-index: 2;
         }
 
         .cell-icon {
-            font-size: 22px;
+            font-size: 20px;
             margin: auto 0;
+            z-index: 2;
         }
 
         .cell-price {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            color: var(--accent-neon);
+            color: var(--accent-cyan);
+            z-index: 2;
         }
 
-        .cell-buildings {
+        /* Real Estate Management Visuals */
+        .cell-infrastructure {
             position: absolute;
-            top: 10px;
             display: flex;
             gap: 2px;
+            z-index: 3;
         }
-        .b-dot {
-            width: 6px; height: 6px;
-            background: var(--accent-orange);
-            border-radius: 50%;
-            box-shadow: 0 0 5px var(--accent-orange);
-        }
-        .b-hub {
-            width: 14px; height: 6px;
-            background: var(--accent-purple);
-            border-radius: 2px;
-            box-shadow: 0 0 5px var(--accent-purple);
-        }
+        .row-top .cell-infrastructure { top: 16px; }
+        .col-right .cell-infrastructure { right: 16px; flex-direction: column; }
+        .row-bottom .cell-infrastructure { bottom: 16px; }
+        .col-left .cell-infrastructure { left: 16px; flex-direction: column; }
 
-        .cell-owner-label {
+        .house-node { width: 6px; height: 6px; background: var(--accent-green); border-radius: 1px; }
+        .hotel-node { width: 14px; height: 6px; background: var(--accent-red); border-radius: 1px; }
+
+        .cell-owner-tag {
             position: absolute;
-            bottom: 24px;
             font-size: 8px;
             font-weight: 900;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 2px 4px;
+            border-radius: 3px;
             text-transform: uppercase;
+            z-index: 4;
         }
+        .row-top .cell-owner-tag { bottom: 16px; }
+        .col-right .cell-owner-tag { left: 16px; }
+        .row-bottom .cell-owner-tag { top: 16px; }
+        .col-left .cell-owner-tag { right: 16px; }
 
-        /* Сітка 7x7 */
+        /* Grid Placement Math for 9x9 */
+        /* Top Row */
         .pos-0  { grid-column: 1; grid-row: 1; }
         .pos-1  { grid-column: 2; grid-row: 1; }
         .pos-2  { grid-column: 3; grid-row: 1; }
@@ -267,310 +262,313 @@
         .pos-4  { grid-column: 5; grid-row: 1; }
         .pos-5  { grid-column: 6; grid-row: 1; }
         .pos-6  { grid-column: 7; grid-row: 1; }
-        .pos-7  { grid-column: 7; grid-row: 2; }
-        .pos-8  { grid-column: 7; grid-row: 3; }
-        .pos-9  { grid-column: 7; grid-row: 4; }
-        .pos-10 { grid-column: 7; grid-row: 5; }
-        .pos-11 { grid-column: 7; grid-row: 6; }
-        .pos-12 { grid-column: 7; grid-row: 7; }
-        .pos-13 { grid-column: 6; grid-row: 7; }
-        .pos-14 { grid-column: 5; grid-row: 7; }
-        .pos-15 { grid-column: 4; grid-row: 7; }
-        .pos-16 { grid-column: 3; grid-row: 7; }
-        .pos-17 { grid-column: 2; grid-row: 7; }
-        .pos-18 { grid-column: 1; grid-row: 7; }
-        .pos-19 { grid-column: 1; grid-row: 6; }
-        .pos-20 { grid-column: 1; grid-row: 5; }
-        .pos-21 { grid-column: 1; grid-row: 4; }
-        .pos-22 { grid-column: 1; grid-row: 3; }
-        .pos-23 { grid-column: 1; grid-row: 2; }
+        .pos-7  { grid-column: 8; grid-row: 1; }
+        .pos-8  { grid-column: 9; grid-row: 1; }
+        /* Right Row */
+        .pos-9  { grid-column: 9; grid-row: 2; }
+        .pos-10 { grid-column: 9; grid-row: 3; }
+        .pos-11 { grid-column: 9; grid-row: 4; }
+        .pos-12 { grid-column: 9; grid-row: 5; }
+        .pos-13 { grid-column: 9; grid-row: 6; }
+        .pos-14 { grid-column: 9; grid-row: 7; }
+        .pos-15 { grid-column: 9; grid-row: 8; }
+        .pos-16 { grid-column: 9; grid-row: 9; }
+        /* Bottom Row */
+        .pos-17 { grid-column: 8; grid-row: 9; }
+        .pos-18 { grid-column: 7; grid-row: 9; }
+        .pos-19 { grid-column: 6; grid-row: 9; }
+        .pos-20 { grid-column: 5; grid-row: 9; }
+        .pos-21 { grid-column: 4; grid-row: 9; }
+        .pos-22 { grid-column: 3; grid-row: 9; }
+        .pos-23 { grid-column: 2; grid-row: 9; }
+        .pos-24 { grid-column: 1; grid-row: 9; }
+        /* Left Row */
+        .pos-25 { grid-column: 1; grid-row: 8; }
+        .pos-26 { grid-column: 1; grid-row: 7; }
+        .pos-27 { grid-column: 1; grid-row: 6; }
+        .pos-28 { grid-column: 1; grid-row: 5; }
+        .pos-29 { grid-column: 1; grid-row: 4; }
+        .pos-30 { grid-column: 1; grid-row: 3; }
+        .pos-31 { grid-column: 1; grid-row: 2; }
 
-        .board-center-hub {
-            grid-column: 2 / 7;
-            grid-row: 2 / 7;
+        /* Board Inner Center */
+        .board-center {
+            grid-column: 2 / 9;
+            grid-row: 2 / 9;
             background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            position: relative;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.02);
-        }
-
-        /* 3D КУБИКИ */
-        .dice-zone {
-            display: flex;
-            gap: 30px;
-            margin: 20px 0;
-            perspective: 400px;
-        }
-
-        .cube3d {
-            width: 60px;
-            height: 60px;
             position: relative;
-            transform-style: preserve-3d;
-            transform: rotateX(45deg) rotateY(45deg);
-            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.3, 1.1);
         }
 
-        .cube3d-face {
-            position: absolute;
-            width: 60px;
-            height: 60px;
+        /* REALTIME CENTRAL CORE CLICKER */
+        .central-dice-platform {
+            background: rgba(31, 41, 55, 0.4);
+            border: 2px dashed var(--accent-cyan);
+            border-radius: 20px;
+            padding: 25px 40px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.05);
+        }
+
+        .central-dice-platform:hover {
+            background: rgba(6, 182, 212, 0.08);
+            transform: scale(1.02);
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.15);
+        }
+
+        .dice-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .dice-cube {
+            width: 65px;
+            height: 65px;
             background: #ffffff;
-            border: 2px solid #cbd5e1;
-            border-radius: 14px;
+            color: #0f172a;
+            border-radius: 12px;
+            font-size: 42px;
+            font-weight: 900;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 34px;
-            color: #0f172a;
-            font-weight: 900;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.1), 0 0 10px rgba(255,255,255,0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), inset 0 -4px 0 #cbd5e1;
+            transition: transform 0.1s;
         }
 
-        .face-1 { transform: rotateY(0deg) translateZ(30px); }
-        .face-2 { transform: rotateY(90deg) translateZ(30px); }
-        .face-3 { transform: rotateY(180deg) translateZ(30px); }
-        .face-4 { transform: rotateY(-90deg) translateZ(30px); }
-        .face-5 { transform: rotateX(90deg) translateZ(30px); }
-        .face-6 { transform: rotateX(-90deg) translateZ(30px); }
+        .platform-callout {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-green);
+        }
 
-        .token-container {
+        .double-indicator {
             position: absolute;
-            bottom: 6px; left: 0; right: 0;
+            top: 20px;
+            background: var(--accent-orange);
+            color: #000;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        /* TOKEN RENDER HOUSING */
+        .token-housing {
+            position: absolute;
+            bottom: 6px;
+            left: 0;
+            right: 0;
             display: flex;
             justify-content: center;
             gap: 4px;
-            z-index: 5;
+            z-index: 10;
         }
 
-        .p-token {
-            width: 14px; height: 14px;
+        .map-token {
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 0 8px rgba(0,0,0,0.8);
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.7);
         }
 
-        .side-dashboard {
+        /* SIDE DASHBOARD */
+        .side-panel {
             flex: 1;
-            min-width: 340px;
-            max-width: 440px;
+            min-width: 360px;
+            max-width: 460px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .dashboard-card {
-            background: var(--panel-inner);
+        .card-panel {
+            background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 18px;
-            padding: 18px;
+            border-radius: 16px;
+            padding: 20px;
         }
 
-        .dashboard-card h3 {
-            font-size: 13px;
+        .card-panel h3 {
+            font-size: 12px;
             text-transform: uppercase;
-            color: var(--text-muted);
+            color: var(--text-gray);
             letter-spacing: 1px;
             margin-bottom: 12px;
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 8px;
         }
 
-        .corp-row {
+        /* ACTION HUB */
+        .action-hub-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+
+        .btn-buy { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #000; }
+        .btn-build { background: linear-gradient(135deg, var(--accent-green), #059669); color: #000; }
+        .btn-jail { background: var(--accent-orange); color: #000; }
+        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: #fff; }
+
+        .panel-btn:disabled {
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        /* LEADERBOARD */
+        .player-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(0,0,0,0.3);
+            background: rgba(3, 7, 18, 0.4);
             padding: 12px 16px;
-            border-radius: 12px;
+            border-radius: 10px;
             margin-bottom: 8px;
             border-left: 4px solid transparent;
         }
 
-        .corp-row.active-turn {
-            border-left-color: var(--accent-neon);
-            background: rgba(0, 240, 255, 0.04);
+        .player-row.active-border {
+            border-left-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.04);
         }
 
-        .corp-money {
+        .player-assets-cash {
             font-weight: 800;
             color: var(--accent-green);
             font-family: monospace;
             font-size: 15px;
         }
 
-        .actions-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .action-trigger-btn {
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 13px;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            transition: 0.2s;
-        }
-
-        .btn-roll {
-            background: linear-gradient(135deg, var(--accent-green), #059669);
-            color: #000;
-        }
-        .btn-buy {
-            background: linear-gradient(135deg, var(--accent-neon), #0284c7);
-            color: #000;
-        }
-        .btn-upgrade {
-            background: linear-gradient(135deg, var(--accent-orange), #ea580c);
-            color: #fff;
-        }
-        .btn-pass {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--panel-border);
-            color: #fff;
-        }
-
-        .action-trigger-btn:disabled {
-            opacity: 0.25;
-            pointer-events: none;
-        }
-
-        .log-terminal {
-            height: 150px;
+        /* TERMINAL LOGS */
+        .terminal-log {
+            height: 180px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 11px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
-        .log-line {
+        .log-node {
             padding: 6px 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
             border-left: 2px solid var(--panel-border);
+            line-height: 1.4;
         }
 
-        .log-line.system { border-left-color: var(--accent-neon); color: var(--accent-neon); }
-        .log-line.danger { border-left-color: var(--accent-crimson); color: var(--accent-crimson); }
-        .log-line.success { border-left-color: var(--accent-green); color: var(--accent-green); }
+        .log-node.sys { border-left-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .log-node.alert { border-left-color: var(--accent-red); color: var(--accent-red); }
+        .log-node.good { border-left-color: var(--accent-green); color: var(--accent-green); }
+        .log-node.warn { border-left-color: var(--accent-orange); color: var(--accent-orange); }
 
-        .event-banner {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid var(--accent-purple);
-            padding: 10px 14px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #e9d5ff;
-            display: none;
-        }
-
-        @media (max-width: 1024px) {
+        @media (max-width: 1100px) {
             :root {
-                --cell-w: 13.5vw;
-                --cell-h: 13.5vw;
+                --cell-w: 10.5vw;
+                --cell-h: 12.5vw;
             }
-            .side-dashboard { width: var(--board-size); }
+            .side-panel { width: 100%; max-width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="neon-grid-bg"></div>
-
     <header>
-        <h1>Cyber Syndicate</h1>
-        <p>Ukraine Corporate War Engine 2026</p>
+        <h1>Monopoly Pro Realtime</h1>
+        <p>Complete Corporate Engine • English UI</p>
     </header>
 
-    <!-- АВТОРИЗАЦІЯ -->
     <div id="auth-screen">
-        <div class="form-title">Ініціалізація Синдикату</div>
-        <div class="input-block">
-            <label>Назва Вашої Корпорації</label>
-            <input type="text" id="player-name-input" value="Кібер Холдинг">
+        <div class="auth-title">Initialize Corporation</div>
+        <div class="input-group">
+            <label>Corporation Identity (Name)</label>
+            <input type="text" id="corp-name-input" value="Syndicate X">
         </div>
-        <div class="input-block">
-            <label>Профільна Стратегія</label>
-            <select id="player-role-input" onchange="Engine.UI.updateRolePreview()">
-                <option value="shark">🦈 Акула Ринку (Прискорений капітал кола)</option>
-                <option value="investor">💰 Венчур (Дивіденди з чужих апгрейдів)</option>
-                <option value="technocrat">💼 Технократ (Знижка на будівництво хабів)</option>
+        <div class="input-group">
+            <label>Strategic Archetype</label>
+            <select id="corp-role-input">
+                <option value="shark">🦈 SHARK (Lap Capital Booster: +$450)</option>
+                <option value="tycoon">💼 TYCOON (Infrastructural Upgrade Discount: -30%)</option>
             </select>
-            <div id="role-preview" class="role-details-box"></div>
         </div>
-        <button class="btn-core" onclick="Engine.Core.launchGame()">Створити Сесію</button>
+        <button class="btn-launch" onclick="Engine.Core.bootstrap()">Deploy Session</button>
     </div>
 
-    <!-- ПОЛЕ ГРИ -->
     <div id="game-screen">
-        <div class="main-layout">
+        <div class="main-container">
             
-            <div class="board-container">
-                <div class="board-grid" id="board-dom-target">
+            <div class="board-wrapper">
+                <div class="board-grid" id="board-grid-dom">
                     
-                    <div class="board-center-hub">
-                        <div style="font-size: 11px; font-weight: 900; opacity: 0.2; letter-spacing: 5px;">SYS_DOMINANCE</div>
+                    <div class="board-center">
+                        <div class="double-indicator" id="double-badge">Double Roll Asset Granted</div>
                         
-                        <!-- 3D КУБИКИ В ЦЕНТРІ ПОЛЯ -->
-                        <div class="dice-zone">
-                            <div class="cube3d" id="cube-1">
-                                <div class="cube3d-face face-1">⚀</div>
-                                <div class="cube3d-face face-2">⚁</div>
-                                <div class="cube3d-face face-3">⚂</div>
-                                <div class="cube3d-face face-4">⚃</div>
-                                <div class="cube3d-face face-5">⚄</div>
-                                <div class="cube3d-face face-6">⚅</div>
+                        <div class="central-dice-platform" id="dice-interactive-trigger" onclick="Engine.Gameplay.rollDice()">
+                            <div class="dice-row">
+                                <div class="dice-cube" id="cube-ui-1">⚀</div>
+                                <div class="dice-cube" id="cube-ui-2">⚀</div>
                             </div>
-                            <div class="cube3d" id="cube-2">
-                                <div class="cube3d-face face-1">⚀</div>
-                                <div class="cube3d-face face-2">⚁</div>
-                                <div class="cube3d-face face-3">⚂</div>
-                                <div class="cube3d-face face-4">⚃</div>
-                                <div class="cube3d-face face-5">⚄</div>
-                                <div class="cube3d-face face-6">⚅</div>
-                            </div>
+                            <div class="platform-callout" id="platform-callout-text">👉 Click to Roll</div>
                         </div>
 
-                        <div id="turn-status" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--accent-neon);">Очікування команд...</div>
-                        <div class="event-banner" id="current-event-banner"></div>
+                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">System Synced</div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- БІЧНА ПАНЕЛЬ КЕРУВАННЯ -->
-            <div class="side-dashboard">
-                <div class="dashboard-card" style="border-color: var(--accent-neon);">
-                    <h3>⚡ Операційний Термінал</h3>
-                    <div class="actions-grid">
-                        <!-- КНОПКА КИДКА ТУТ, ПРАВОРУЧ ВІД КАРТИ -->
-                        <button class="action-trigger-btn btn-roll" id="btn-roll" onclick="Engine.Gameplay.rollDice3D()">🎲 Ініціювати кидок</button>
-                        <button class="action-trigger-btn btn-buy" id="btn-buy" style="display: none;">🛒 Викупити активи</button>
-                        <button class="action-trigger-btn btn-upgrade" id="btn-upgrade" style="display: none;">🏢 Побудувати Філіал</button>
-                        <button class="action-trigger-btn btn-pass" id="btn-pass" onclick="Engine.Gameplay.completeTurn()" style="display: none;">👉 Зафіксувати прибуток</button>
+            <div class="side-panel">
+                
+                <div class="card-panel" id="action-panel-wks" style="display: none; border-color: var(--accent-cyan);">
+                    <h3>⚡ Corporate Operations</h3>
+                    <div class="action-hub-box">
+                        <button class="panel-btn btn-buy" id="hub-action-buy">Acquire Asset</button>
+                        <button class="panel-btn btn-build" id="hub-action-build">Construct Branch</button>
+                        <button class="panel-btn btn-jail" id="hub-action-jail">Settle Bail Out ($50)</button>
+                        <button class="panel-btn btn-pass" id="hub-action-pass" onclick="Engine.Gameplay.closeTurn()">Acknowledge & Continue</button>
                     </div>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>📈 Реєстр Акціонерів</h3>
-                    <div id="investor-list-target"></div>
+                <div class="card-panel">
+                    <h3>📊 Boardroom Capitalization</h3>
+                    <div id="leaderboard-dom-target"></div>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>📜 Протокол Транзакцій</h3>
-                    <div class="log-terminal" id="terminal-target"></div>
+                <div class="card-panel">
+                    <h3>📜 Data Transmission Logs</h3>
+                    <div class="terminal-log" id="terminal-dom-target"></div>
                 </div>
+
             </div>
 
         </div>
@@ -579,413 +577,482 @@
     <script>
         const Engine = {
             Config: {
-                totalCells: 24,
-                startCapital: 2000,
-                lapSalary: 250,
+                totalCells: 32,
+                startingCash: 1500,
+                baseSalary: 200,
+                jailBailoutCost: 50,
                 mapData: [
-                    { id: 0, name: "СТАРТ", type: "start", icon: "🚀", color: "#ef4444" },
-                    { id: 1, name: "ATB Market", type: "corp", price: 150, rent: 20, lvl: 0, owner: null, group: "retail" },
-                    { id: 2, name: "Аврора Мульти", type: "corp", price: 180, rent: 25, lvl: 0, owner: null, group: "retail" },
-                    { id: 3, name: "ШАНС / РИНОК", type: "chance", icon: "⚡" },
-                    { id: 4, name: "ОККО АЗС", type: "corp", price: 240, rent: 35, lvl: 0, owner: null, group: "energy" },
-                    { id: 5, name: "WOG Сет", type: "corp", price: 260, rent: 40, lvl: 0, owner: null, group: "energy" },
-                    { id: 6, name: "Мобілізація / ТЦК", type: "jail", icon: "🚔", color: "#3b82f6" },
-                    { id: 7, name: "Rozetka Hld", type: "corp", price: 320, rent: 50, lvl: 0, owner: null, group: "tech" },
-                    { id: 8, name: "Comfy Corp", type: "corp", price: 350, rent: 55, lvl: 0, owner: null, group: "tech" },
-                    { id: 9, name: "КРИЗА / КЕШ", type: "chance", icon: "🎲" },
-                    { id: 10, name: "Нова Пошта", type: "corp", price: 420, rent: 70, lvl: 0, owner: null, group: "delivery" },
-                    { id: 11, name: "Укрпошта АТ", type: "corp", price: 450, rent: 75, lvl: 0, owner: null, group: "delivery" },
-                    { id: 12, name: "НАЦБАНК ТАКС", type: "tax", icon: "🏛️" },
-                    { id: 13, name: "Сільпо ЛТД", type: "corp", price: 520, rent: 90, lvl: 0, owner: null, group: "agro" },
-                    { id: 14, name: "Наша Ряба Агро", type: "corp", price: 550, rent: 95, lvl: 0, owner: null, group: "agro" },
-                    { id: 15, name: "ФОНДОВА БІРЖА", type: "chance", icon: "🪙" },
-                    { id: 16, name: "Lviv Croissants", type: "corp", price: 620, rent: 110, lvl: 0, owner: null, group: "horeca" },
-                    { id: 17, name: "Monobank UA", type: "corp", price: 680, rent: 125, lvl: 0, owner: null, group: "horeca" },
-                    { id: 18, name: "КІБЕР ОФШОР", type: "casino", icon: "🎰" },
-                    { id: 19, name: "SoftServe IT", type: "corp", price: 800, rent: 160, lvl: 0, owner: null, group: "it" },
-                    { id: 20, name: "EPAM Systems", type: "corp", price: 850, rent: 175, lvl: 0, owner: null, group: "it" },
-                    { id: 21, name: "ДІЯ СТАРТАП", type: "chance", icon: "📈" },
-                    { id: 22, name: "Київстар ТЕЛЕ", type: "corp", price: 1000, rent: 220, lvl: 0, owner: null, group: "telecom" },
-                    { id: 23, name: "ПриватБанк АТ", type: "corp", price: 1200, rent: 280, lvl: 0, owner: null, group: "telecom" }
+                    { id: 0, name: "GO (Start)", type: "start", icon: "🚀", edge: "top" },
+                    { id: 1, name: "ATB Market", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 2, name: "Community Chest", type: "chest", icon: "📦", edge: "top" },
+                    { id: 3, name: "Aurora Multi", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 4, name: "Income Tax", type: "tax", cost: 200, icon: "🏛️", edge: "top" },
+                    { id: 5, name: "Kyiv Railway", type: "railroad", price: 200, owner: null, group: "rail", edge: "top" },
+                    { id: 6, name: "OKKO Petrol", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], lvl: 0, owner: null, group: "lightblue", edge: "top" },
+                    { id: 7, name: "Chance Alpha", type: "chance", icon: "⚡", edge: "top" },
+                    { id: 8, name: "WOG Station", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], lvl: 0, owner: null, group: "lightblue", edge: "top" },
+                    { id: 9, name: "Incarceration (Jail)", type: "jail", icon: "🚔", edge: "right" },
+                    { id: 10, name: "Rozetka Hld", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], lvl: 0, owner: null, group: "pink", edge: "right" },
+                    { id: 11, name: "DTEK Energy", type: "utility", price: 150, owner: null, group: "util", edge: "right" },
+                    { id: 12, name: "Comfy Electronics", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], lvl: 0, owner: null, group: "pink", edge: "right" },
+                    { id: 13, name: "Lviv Railway", type: "railroad", price: 200, owner: null, group: "rail", edge: "right" },
+                    { id: 14, name: "Nova Poshta", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 15, name: "Community Chest", type: "chest", icon: "📦", edge: "right" },
+                    { id: 16, name: "Ukrposhta Enterprise", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 17, name: "Free Parking", type: "parking", icon: "🅿️", edge: "bottom" },
+                    { id: 18, name: "Silpo Retail", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], lvl: 0, owner: null, group: "red", edge: "bottom" },
+                    { id: 19, name: "Chance Beta", type: "chance", icon: "⚡", edge: "bottom" },
+                    { id: 20, name: "Nashariaba Agro", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], lvl: 0, owner: null, group: "red", edge: "bottom" },
+                    { id: 21, name: "Odesa Port Rail", type: "railroad", price: 200, owner: null, group: "rail", edge: "bottom" },
+                    { id: 22, name: "Lviv Croissants", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
+                    { id: 23, name: "Morfshynska Water", type: "utility", price: 150, owner: null, group: "util", edge: "bottom" },
+                    { id: 24, name: "Monobank UA", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
+                    { id: 25, name: "Go To Jail Structure", type: "gotojail", icon: "👮", edge: "left" },
+                    { id: 26, name: "SoftServe Corp", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], lvl: 0, owner: null, group: "green", edge: "left" },
+                    { id: 27, name: "EPAM Systems", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], lvl: 0, owner: null, group: "green", edge: "left" },
+                    { id: 28, name: "Community Chest", type: "chest", icon: "📦", edge: "left" },
+                    { id: 29, name: "Dnipro Logistics Rail", type: "railroad", price: 200, owner: null, group: "rail", edge: "left" },
+                    { id: 30, name: "Kyivstar Telecom", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], lvl: 0, owner: null, group: "darkblue", edge: "left" },
+                    { id: 31, name: "PrivatBank State", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], lvl: 0, owner: null, group: "darkblue", edge: "left" }
                 ],
-                colors: { retail: "#ef4444", energy: "#eab308", tech: "#10b981", delivery: "#06b6d4", agro: "#3b82f6", horeca: "#6366f1", it: "#8b5cf6", telecom: "#ec4899" },
-                roles: {
-                    shark: "🦈 Капітал за коло збільшений до $450.",
-                    investor: "💰 Отримує $50 від банку за кожну побудовану філію суперника.",
-                    technocrat: "💼 Знижка 30% на будь-яку модернізацію та будівництво хабів."
+                groupColors: {
+                    brown: "#78350f", lightblue: "#0ea5e9", pink: "#ec4899", orange: "#f97316",
+                    red: "#ef4444", yellow: "#eab308", green: "#22c55e", darkblue: "#1d4ed8",
+                    rail: "#4b5563", util: "#84cc16"
                 },
-                marketEvents: [
-                    { title: "🔌 КРИЗА ЕНЕРГОСИСТЕМИ", desc: "Сектор Енергетики призупиняє збір оренди на 1 коло.", target: "energy", modifier: 0 },
-                    { title: "💻 ЦИФРОВИЙ БУМ", desc: "Доходи IT-сектору подвоєно на наступні 3 ходи!", target: "it", modifier: 2 },
-                    { title: "🏛️ ДЕРЖАВНИЙ АУДИТ", desc: "Усі власники компаній групи Ритейл сплачують штраф $100 за кожну точку.", target: "retail", modifier: -100 },
-                    { title: "📦 ЛОГІСТИЧНИЙ ПРОРИВ", desc: "Нова Пошта та Укрпошта збільшують рентабельність на 50%.", target: "delivery", modifier: 1.5 }
+                chanceCards: [
+                    { txt: "Advance to GO. Collect Dividends.", type: "move", target: 0 },
+                    { txt: "Speeding Ticket Infraction. Pay fine $50.", type: "fine", cash: 50 },
+                    { txt: "Corporate Infiltration. Go directly to Jail.", type: "jail" },
+                    { txt: "Tax Rebate Audit Prosperous. Collect $150.", type: "gift", cash: 150 },
+                    { txt: "System Modernization Costs. Pay $50 per upgraded branch.", type: "repair", houseCost: 50 }
                 ]
             },
 
             State: {
-                turn: "p1",
+                activeTurn: "p1",
                 players: {},
                 logs: [],
-                lastDice: [1, 1],
                 isRolling: false,
-                activeModifier: null,
-                modifierTurns: 0
+                consecutiveDoubles: 0,
+                lastRollSum: 2,
+                hasPendingAction: false
             },
 
             Core: {
-                launchGame: function() {
-                    Engine.Audio.init();
-                    const name = document.getElementById('player-name-input').value || "Кібер Холдинг";
-                    const role = document.getElementById('player-role-input').value;
+                bootstrap: function() {
+                    const name = document.getElementById('corp-name-input').value || "Syndicate Alpha";
+                    const role = document.getElementById('corp-role-input').value;
 
                     Engine.State.players = {
-                        p1: { id: "p1", name: name, role: role, money: Engine.Config.startCapital, pos: 0, color: "var(--accent-neon)", isBot: false, inJail: 0 },
-                        bot: { id: "bot", name: "Олігарх-ШІ (BlackRock)", role: "shark", money: Engine.Config.startCapital, pos: 0, color: "var(--accent-crimson)", isBot: true, inJail: 0 }
+                        p1: { id: "p1", name: name, role: role, cash: Engine.Config.startingCash, pos: 0, color: "var(--accent-cyan)", inJail: 0, isBot: false },
+                        bot: { id: "bot", name: "Apex-AI (BlackRock)", role: "shark", cash: Engine.Config.startingCash, pos: 0, color: "var(--accent-red)", inJail: 0, isBot: true }
                     };
 
-                    Engine.State.logs.push({ type: "system", text: "⚙️ Протокол синхронізації фінансових систем запущено." });
+                    Engine.State.logs.push({ type: "sys", text: `🔒 Secure network operational. Session deployed by ${name}.` });
                     
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('game-screen').style.display = 'block';
 
-                    Engine.UI.generateMap();
+                    Engine.UI.renderBoardStructure();
                     Engine.UI.sync();
                 }
             },
 
             Gameplay: {
-                rollDice3D: function() {
-                    if (Engine.State.turn !== "p1" || Engine.State.isRolling) return;
-                    
-                    let p = Engine.State.players[Engine.State.turn];
-                    
-                    if(p.inJail > 0) {
-                        p.inJail--;
-                        Engine.State.logs.push({ type: "danger", text: `🚔 ${p.name} перебуває під перевіркою ТЦК. Пропуск ходу.` });
-                        Engine.Gameplay.completeTurn();
-                        return;
-                    }
+                rollDice: function() {
+                    if (Engine.State.activeTurn !== "p1" || Engine.State.isRolling || Engine.State.hasPendingAction) return;
+
+                    let p = Engine.State.players[Engine.State.activeTurn];
 
                     Engine.State.isRolling = true;
-                    Engine.Audio.triggerSound('dice');
+                    document.getElementById('platform-callout-text').innerText = "🎰 CYCLING...";
 
-                    const c1 = document.getElementById('cube-1');
-                    const c2 = document.getElementById('cube-2');
+                    let d1 = Math.floor(Math.random() * 6) + 1;
+                    let d2 = Math.floor(Math.random() * 6) + 1;
+                    Engine.State.lastRollSum = d1 + d2;
 
-                    let randX = Math.floor(Math.random() * 4 + 4) * 360;
-                    let randY = Math.floor(Math.random() * 4 + 4) * 360;
+                    const diceGraphics = { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" };
+                    let ticks = 0;
 
-                    const d1 = Math.floor(Math.random() * 6) + 1;
-                    const d2 = Math.floor(Math.random() * 6) + 1;
-                    Engine.State.lastDice = [d1, d2];
+                    let loop = setInterval(() => {
+                        document.getElementById('cube-ui-1').innerText = diceGraphics[Math.floor(Math.random() * 6) + 1];
+                        document.getElementById('cube-ui-2').innerText = diceGraphics[Math.floor(Math.random() * 6) + 1];
+                        ticks++;
 
-                    const rotations = {
-                        1: {x: 0, y: 0}, 2: {x: 0, y: -90}, 3: {x: 0, y: -180},
-                        4: {x: 0, y: 90}, 5: {x: -90, y: 0}, 6: {x: 90, y: 0}
-                    };
+                        if(ticks > 10) {
+                            clearInterval(loop);
+                            document.getElementById('cube-ui-1').innerText = diceGraphics[d1];
+                            document.getElementById('cube-ui-2').innerText = diceGraphics[d2];
 
-                    c1.style.transform = `rotateX(${randX + rotations[d1].x}deg) rotateY(${randY + rotations[d1].y}deg)`;
-                    c2.style.transform = `rotateX(${randX + rotations[d2].x}deg) rotateY(${randY + rotations[d2].y}deg)`;
+                            let isDouble = (d1 === d2);
+                            Engine.State.isRolling = false;
 
-                    // Ховаємо кнопку тільки на момент анімації
-                    document.getElementById('btn-roll').style.opacity = '0.3';
-                    document.getElementById('btn-roll').disabled = true;
+                            // Handle Jail Context
+                            if(p.inJail > 0) {
+                                if(isDouble) {
+                                    p.inJail = 0;
+                                    Engine.State.logs.push({ type: "good", text: `🔓 Double Roll [${d1}:${d2}] broken! ${p.name} released from Jail.` });
+                                    Engine.State.consecutiveDoubles = 0;
+                                } else {
+                                    p.inJail--;
+                                    if(p.inJail === 0) {
+                                        p.cash -= Engine.Config.jailBailoutCost;
+                                        Engine.State.logs.push({ type: "warn", text: `🚨 Maximum Detention time reached. Mandatory $50 Bail processed. ${p.name} released.` });
+                                    } else {
+                                        Engine.State.logs.push({ type: "alert", text: `🚔 No Double rolled. ${p.name} remains under restriction (${p.inJail} turns left).` });
+                                        Engine.Gameplay.closeTurn();
+                                        return;
+                                    }
+                                }
+                            } else {
+                                if(isDouble) {
+                                    Engine.State.consecutiveDoubles++;
+                                    if(Engine.State.consecutiveDoubles === 3) {
+                                        Engine.State.logs.push({ type: "alert", text: `🚨 3 Consecutive Doubles! ${p.name} arrested for Market Manipulation.` });
+                                        p.pos = 9;
+                                        p.inJail = 3;
+                                        Engine.State.consecutiveDoubles = 0;
+                                        Engine.Gameplay.closeTurn();
+                                        return;
+                                    }
+                                    document.getElementById('double-badge').style.display = 'block';
+                                } else {
+                                    Engine.State.consecutiveDoubles = 0;
+                                    document.getElementById('double-badge').style.display = 'none';
+                                }
+                            }
 
-                    setTimeout(() => {
-                        let oldPos = p.pos;
-                        p.pos = (p.pos + d1 + d2) % Engine.Config.totalCells;
+                            // Advance Position
+                            let priorPos = p.pos;
+                            p.pos = (p.pos + d1 + d2) % Engine.Config.totalCells;
+                            Engine.State.logs.push({ type: "sys", text: `🎲 ${p.name} rolled [${d1}:${d2}]. Processing location tile ${p.pos}.` });
 
-                        Engine.State.logs.push({ type: "system", text: `🎲 ${p.name} вибиває [${d1}:${d2}] та переходить на кл. ${p.pos}` });
+                            if(p.pos < priorPos) {
+                                let reward = p.role === 'shark' ? 450 : Engine.Config.baseSalary;
+                                p.cash += reward;
+                                Engine.State.logs.push({ type: "good", text: `💸 Complete Lap Revenue processed. +$${reward} injected.` });
+                            }
 
-                        if(p.pos < oldPos) {
-                            let salary = p.role === 'shark' ? 450 : Engine.Config.lapSalary;
-                            p.money += salary;
-                            Engine.Audio.triggerSound('money');
-                            Engine.State.logs.push({ type: "success", text: `💸 Пройдено операційне коло! Рахунок поповнено на +$${salary}` });
+                            Engine.Gameplay.evaluateTileState(p);
                         }
-
-                        Engine.State.isRolling = false;
-                        document.getElementById('btn-roll').style.opacity = '1';
-                        document.getElementById('btn-roll').disabled = false;
-                        
-                        Engine.Gameplay.handleCellAction(p);
-                    }, 800);
+                    }, 80);
                 },
 
-                handleCellAction: function(p) {
-                    let cell = Engine.Config.mapData[p.pos];
-                    let buyBtn = document.getElementById('btn-buy');
-                    let upgradeBtn = document.getElementById('btn-upgrade');
-                    let passBtn = document.getElementById('btn-pass');
+                evaluateTileState: function(p) {
+                    let tile = Engine.Config.mapData[p.pos];
+                    let uiHub = document.getElementById('action-panel-wks');
+                    let bBtn = document.getElementById('hub-action-buy');
+                    let uBtn = document.getElementById('hub-action-build');
+                    let jBtn = document.getElementById('hub-action-jail');
+                    let pBtn = document.getElementById('hub-action-pass');
 
-                    buyBtn.style.display = 'none';
-                    upgradeBtn.style.display = 'none';
-                    passBtn.style.display = 'block';
+                    uiHub.style.display = 'block';
+                    bBtn.style.display = 'none';
+                    uBtn.style.display = 'none';
+                    jBtn.style.display = 'none';
+                    pBtn.style.display = 'block';
+
+                    Engine.State.hasPendingAction = true;
+                    document.getElementById('dice-interactive-trigger').style.pointerEvents = 'none';
+                    document.getElementById('platform-callout-text').innerText = "⚠️ ACTION REQUIRED";
+                    document.getElementById('platform-callout-text').style.color = 'var(--accent-red)';
 
                     if(p.isBot) {
                         setTimeout(() => {
-                            if(cell.type === "corp") {
-                                if(!cell.owner && p.money >= cell.price + 200) {
-                                    p.money -= cell.price;
-                                    cell.owner = p.id;
-                                    cell.lvl = 1;
-                                    Engine.State.logs.push({ type: "danger", text: `🤖 ШІ викупив активи ${cell.name}` });
-                                } else if(cell.owner === p.id && cell.lvl < 4 && p.money >= Math.round(cell.price * 0.5) + 300) {
-                                    let cost = Math.round(cell.price * 0.5);
-                                    p.money -= cost;
-                                    cell.lvl++;
-                                    Engine.State.logs.push({ type: "danger", text: `🏢 ШІ апгрейднув ${cell.name} до ${cell.lvl} рівня` });
-                                } else if(cell.owner && cell.owner !== p.id) {
-                                    let rent = Engine.Gameplay.getFinalRent(cell);
-                                    p.money -= rent;
-                                    Engine.State.players[cell.owner].money += rent;
-                                    Engine.State.logs.push({ type: "success", text: `💸 ШІ виплатив вам оренду $${rent}` });
+                            if(tile.type === "property" || tile.type === "railroad" || tile.type === "utility") {
+                                if(!tile.owner && p.cash >= (tile.price + 150)) {
+                                    p.cash -= tile.price; tile.owner = "bot"; if(tile.type === "property") tile.lvl = 1;
+                                    Engine.State.logs.push({ type: "alert", text: `🤖 AI Capitalized asset: ${tile.name}.` });
+                                } else if(tile.owner === "p1") {
+                                    let fee = Engine.Gameplay.calculateRentLiability(tile);
+                                    p.cash -= fee; Engine.State.players.p1.cash += fee;
+                                    Engine.State.logs.push({ type: "good", text: `💸 AI Transferred rent obligation of $${fee} to your account.` });
+                                    Engine.Gameplay.verifySolvency("bot");
+                                } else if(tile.owner === "bot" && tile.type === "property" && tile.lvl < 6 && p.cash >= 300) {
+                                    let upgradeFee = Math.round(tile.price * 0.6);
+                                    p.cash -= upgradeFee; tile.lvl++;
+                                    Engine.State.logs.push({ type: "alert", text: `🏢 AI Upgraded infrastructure on ${tile.name} to Tier ${tile.lvl}.` });
                                 }
-                            } else if(cell.type === "tax") {
-                                p.money -= 200;
-                            } else if(cell.type === "jail") {
-                                p.inJail = 2;
-                            } else if(cell.type === "chance") {
-                                Engine.Gameplay.triggerChanceEvent(p);
+                            } else if(tile.type === "tax") {
+                                p.cash -= tile.cost;
+                                Engine.State.logs.push({ type: "alert", text: `🏛️ National Tax Liability claimed $${tile.cost} from AI.` });
+                                Engine.Gameplay.verifySolvency("bot");
+                            } else if(tile.type === "gotojail") {
+                                p.pos = 9; p.inJail = 3;
+                                Engine.State.logs.push({ type: "alert", text: `🚔 AI apprehended and escorted to Jail matrix.` });
+                            } else if(tile.type === "chance" || tile.type === "chest") {
+                                Engine.Gameplay.executeRandomEvent(p);
                             }
-                            Engine.Gameplay.completeTurn();
+                            Engine.Gameplay.closeTurn();
                         }, 1200);
                         return;
                     }
 
-                    // Гравець
-                    if(cell.type === "corp") {
-                        if(!cell.owner) {
-                            buyBtn.style.display = 'block';
-                            buyBtn.innerText = `🛒 Купити ${cell.name} за $${cell.price}`;
-                            buyBtn.disabled = p.money < cell.price;
-                            buyBtn.onclick = () => {
-                                p.money -= cell.price;
-                                cell.owner = p.id;
-                                cell.lvl = 1;
-                                Engine.Audio.triggerSound('buy');
-                                Engine.Gameplay.completeTurn();
-                            };
-                        } else if(cell.owner === p.id) {
-                            if(cell.lvl < 4) {
-                                let cost = Math.round(cell.price * 0.5);
-                                if(p.role === 'technocrat') cost = Math.round(cost * 0.7);
+                    // Human Interaction Logic
+                    if(p.inJail > 0) {
+                        jBtn.style.display = 'block';
+                        jBtn.disabled = p.cash < Engine.Config.jailBailoutCost;
+                        jBtn.onclick = () => {
+                            p.cash -= Engine.Config.jailBailoutCost; p.inJail = 0;
+                            Engine.State.logs.push({ type: "good", text: `💸 Bail accepted. You are clear for immediate release.` });
+                            jBtn.style.display = 'none';
+                            Engine.UI.sync();
+                        };
+                    }
 
-                                upgradeBtn.style.display = 'block';
-                                upgradeBtn.innerText = `🏢 Апгрейд структури за $${cost}`;
-                                upgradeBtn.disabled = p.money < cost;
-                                upgradeBtn.onclick = () => {
-                                    p.money -= cost;
-                                    cell.lvl++;
-                                    Engine.Audio.triggerSound('buy');
-                                    Engine.Gameplay.completeTurn();
+                    if(tile.type === "property" || tile.type === "railroad" || tile.type === "utility") {
+                        if(!tile.owner) {
+                            bBtn.style.display = 'block';
+                            bBtn.innerText = `Acquire ${tile.name} ($${tile.price})`;
+                            bBtn.disabled = p.cash < tile.price;
+                            bBtn.onclick = () => {
+                                p.cash -= tile.price; tile.owner = "p1"; if(tile.type === "property") tile.lvl = 1;
+                                Engine.State.logs.push({ type: "good", text: `💼 Asset added to portfolio: ${tile.name}` });
+                                Engine.Gameplay.closeTurn();
+                            };
+                        } else if(tile.owner === "p1") {
+                            if(tile.type === "property" && tile.lvl < 6) {
+                                let upgradeCost = Math.round(tile.price * 0.6);
+                                if(p.role === "tycoon") upgradeCost = Math.round(upgradeCost * 0.7);
+                                
+                                uBtn.style.display = 'block';
+                                uBtn.innerText = `Upgrade Infrastructure ($${upgradeCost})`;
+                                uBtn.disabled = p.cash < upgradeCost;
+                                uBtn.onclick = () => {
+                                    p.cash -= upgradeCost; tile.lvl++;
+                                    Engine.State.logs.push({ type: "good", text: `⭐ ${tile.name} upgraded to Tier ${tile.lvl}.` });
+                                    Engine.Gameplay.closeTurn();
                                 };
                             }
                         } else {
-                            let rent = Engine.Gameplay.getFinalRent(cell);
-                            buyBtn.style.display = 'block';
-                            passBtn.style.display = 'none';
-                            buyBtn.innerText = `💸 Сплатити оренду $${rent}`;
-                            buyBtn.disabled = false;
-                            buyBtn.onclick = () => {
-                                p.money -= rent;
-                                Engine.State.players[cell.owner].money += rent;
-                                Engine.Gameplay.completeTurn();
+                            let liability = Engine.Gameplay.calculateRentLiability(tile);
+                            bBtn.style.display = 'block';
+                            pBtn.style.display = 'none';
+                            bBtn.innerText = `Liquidate Rent Due ($${liability})`;
+                            bBtn.onclick = () => {
+                                p.cash -= liability; Engine.State.players.bot.cash += liability;
+                                Engine.State.logs.push({ type: "alert", text: `⚠️ Rent Liability of $${liability} cleared to competitors.` });
+                                Engine.Gameplay.verifySolvency("p1");
+                                Engine.Gameplay.closeTurn();
                             };
                         }
-                    } else if(cell.type === "tax") {
-                        buyBtn.style.display = 'block';
-                        passBtn.style.display = 'none';
-                        buyBtn.innerText = "🏛️ Сплатити держподаток $200";
-                        buyBtn.onclick = () => {
-                            p.money -= 200;
-                            Engine.Gameplay.completeTurn();
+                    } else if(tile.type === "tax") {
+                        bBtn.style.display = 'block'; pBtn.style.display = 'none';
+                        bBtn.innerText = `Pay Sovereign Tax ($${tile.cost})`;
+                        bBtn.onclick = () => {
+                            p.cash -= tile.cost;
+                            Engine.State.logs.push({ type: "alert", text: `🏛️ Tax protocol processed. -$${tile.cost}` });
+                            Engine.Gameplay.verifySolvency("p1");
+                            Engine.Gameplay.closeTurn();
                         };
-                    } else if(cell.type === "jail") {
-                        p.inJail = 2;
-                        Engine.Audio.triggerSound('jail');
-                        Engine.Gameplay.completeTurn();
-                    } else if(cell.type === "chance") {
-                        Engine.Gameplay.triggerChanceEvent(p);
+                    } else if(tile.type === "gotojail") {
+                        p.pos = 9; p.inJail = 3; Engine.State.consecutiveDoubles = 0;
+                        Engine.State.logs.push({ type: "alert", text: `🚔 Detained by law enforcement. Moving directly to Jail.` });
+                        Engine.Gameplay.closeTurn();
+                    } else if(tile.type === "chance" || tile.type === "chest") {
+                        Engine.Gameplay.executeRandomEvent(p);
                     }
                     Engine.UI.sync();
                 },
 
-                getFinalRent: function(cell) {
-                    let base = cell.rent * Math.pow(2.2, cell.lvl - 1);
-                    return Math.round(base);
+                calculateRentLiability: function(tile) {
+                    if(tile.type === "property") {
+                        return tile.rent[tile.lvl];
+                    }
+                    if(tile.type === "railroad") {
+                        let count = Engine.Config.mapData.filter(t => t.group === "rail" && t.owner === tile.owner).length;
+                        return 25 * Math.pow(2, count - 1);
+                    }
+                    if(tile.type === "utility") {
+                        let count = Engine.Config.mapData.filter(t => t.group === "util" && t.owner === tile.owner).length;
+                        let multiplier = count === 2 ? 10 : 4;
+                        return Engine.State.lastRollSum * multiplier;
+                    }
+                    return 0;
                 },
 
-                triggerChanceEvent: function(p) {
-                    let ev = Engine.Config.marketEvents[Math.floor(Math.random() * Engine.Config.marketEvents.length)];
-                    Engine.State.activeModifier = ev;
-                    Engine.State.modifierTurns = 3;
-                    Engine.State.logs.push({ type: "system", text: `📢 ПОДІЯ: ${ev.title}.` });
-                    
-                    let banner = document.getElementById('current-event-banner');
-                    banner.style.display = 'block';
-                    banner.innerText = `🚨 ${ev.title}: ${ev.desc}`;
+                executeRandomEvent: function(p) {
+                    let cards = Engine.Config.chanceCards;
+                    let selected = cards[Math.floor(Math.random() * cards.length)];
+                    Engine.State.logs.push({ type: "warn", text: `📜 EVENT: "${selected.txt}"` });
+
+                    if(selected.type === "move") {
+                        p.pos = selected.target;
+                        if(p.pos === 0) p.cash += Engine.Config.baseSalary;
+                    } else if(selected.type === "fine") {
+                        p.cash -= selected.cash; Engine.Gameplay.verifySolvency(p.id);
+                    } else if(selected.type === "gift") {
+                        p.cash += selected.cash;
+                    } else if(selected.type === "jail") {
+                        p.pos = 9; p.inJail = 3;
+                    } else if(selected.type === "repair") {
+                        let branches = Engine.Config.mapData.filter(t => t.owner === p.id && t.lvl).reduce((acc, curr) => acc + curr.lvl, 0);
+                        p.cash -= (branches * selected.houseCost); Engine.Gameplay.verifySolvency(p.id);
+                    }
                 },
 
-                completeTurn: function() {
-                    if(Engine.State.players.p1.money < 0) {
-                        alert("💀 Банкрутство холдингу!");
+                verifySolvency: function(pid) {
+                    let target = Engine.State.players[pid];
+                    if(target.cash < 0) {
+                        alert(`💀 BANKRUPTCY PROCEDURES INITIATED. ${target.name} is insolvable. Game Over.`);
                         location.reload();
-                        return;
                     }
+                },
 
-                    Engine.State.turn = Engine.State.turn === "p1" ? "bot" : "p1";
-                    
-                    document.getElementById('btn-buy').style.display = 'none';
-                    document.getElementById('btn-upgrade').style.display = 'none';
-                    document.getElementById('btn-pass').style.display = 'none';
+                closeTurn: function() {
+                    document.getElementById('action-panel-wks').style.display = 'none';
+                    Engine.State.hasPendingAction = false;
+
+                    // If double roll active and player did not get arrested, preserve turn privilege
+                    if(Engine.State.consecutiveDoubles > 0 && Engine.State.players.p1.inJail === 0) {
+                        Engine.State.logs.push({ type: "sys", text: `🔄 Double sequence retained. Extra roll authorized.` });
+                    } else {
+                        Engine.State.activeTurn = Engine.State.activeTurn === "p1" ? "bot" : "p1";
+                    }
 
                     Engine.UI.sync();
 
-                    if(Engine.State.players[Engine.State.turn].isBot) {
-                        setTimeout(() => { Engine.Gameplay.rollDice3D(); }, 1000);
+                    if(Engine.State.players[Engine.State.activeTurn].isBot) {
+                        let bPlayer = Engine.State.players.bot;
+                        if(bPlayer.inJail > 0) {
+                            bPlayer.inJail--;
+                            Engine.State.logs.push({ type: "alert", text: `🚔 AI skips turn inside Jail facility.` });
+                            Engine.Gameplay.closeTurn();
+                        } else {
+                            setTimeout(() => { Engine.Gameplay.rollDiceAI(); }, 1000);
+                        }
                     }
+                },
+
+                rollDiceAI: function() {
+                    let p = Engine.State.players.bot;
+                    let d1 = Math.floor(Math.random() * 6) + 1;
+                    let d2 = Math.floor(Math.random() * 6) + 1;
+                    Engine.State.lastRollSum = d1 + d2;
+
+                    let priorPos = p.pos;
+                    p.pos = (p.pos + d1 + d2) % Engine.Config.totalCells;
+
+                    const graphics = { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" };
+                    document.getElementById('cube-ui-1').innerText = graphics[d1];
+                    document.getElementById('cube-ui-2').innerText = graphics[d2];
+
+                    Engine.State.logs.push({ type: "sys", text: `🤖 AI dispatched roll [${d1}:${d2}]. Processing position ${p.pos}` });
+
+                    if(p.pos < priorPos) {
+                        p.cash += Engine.Config.baseSalary;
+                    }
+
+                    Engine.Gameplay.evaluateTileState(p);
                 }
             },
 
             UI: {
-                updateRolePreview: function() {
-                    let val = document.getElementById('player-role-input').value;
-                    document.getElementById('role-preview').innerText = Engine.Config.roles[val];
-                },
-
-                generateMap: function() {
-                    let target = document.getElementById('board-dom-target');
-                    let coreHTML = target.querySelector('.board-center-hub').outerHTML;
-                    target.innerHTML = coreHTML;
+                renderBoardStructure: function() {
+                    let grid = document.getElementById('board-grid-dom');
+                    let centralHubHTML = grid.querySelector('.board-center').outerHTML;
+                    grid.innerHTML = centralHubHTML;
 
                     Engine.Config.mapData.forEach(cell => {
-                        let node = document.createElement('div');
-                        node.className = `cell pos-${cell.id}`;
-                        let stripeColor = cell.color || Engine.Config.colors[cell.group] || "#374151";
+                        let block = document.createElement('div');
+                        block.className = `cell pos-${cell.id}`;
                         
-                        node.innerHTML = `
-                            <div class="cell-stripe" style="background:${stripeColor}"></div>
-                            <div class="cell-buildings" id="build-box-${cell.id}"></div>
+                        // Detect Orientation class mapping
+                        if(cell.id <= 8) block.classList.add('row-top');
+                        else if(cell.id <= 16) block.classList.add('col-right');
+                        else if(cell.id <= 24) block.classList.add('row-bottom');
+                        else block.classList.add('col-left');
+
+                        let barColor = Engine.Config.groupColors[cell.group] || "transparent";
+
+                        block.innerHTML = `
+                            <div class="cell-stripe" style="background:${barColor}"></div>
+                            <div class="cell-infrastructure" id="infra-layer-${cell.id}"></div>
                             <div class="cell-title">${cell.name}</div>
                             <div class="cell-icon">${cell.icon || '🏢'}</div>
-                            <div class="cell-owner-label" id="owner-lbl-${cell.id}"></div>
-                            <div class="cell-price" id="price-lbl-${cell.id}">${cell.price ? '$'+cell.price : ''}</div>
-                            <div class="token-container" id="token-box-${cell.id}"></div>
+                            <div class="cell-owner-tag" id="owner-tag-${cell.id}"></div>
+                            <div class="cell-price">${cell.price ? '$' + cell.price : ''}</div>
+                            <div class="token-housing" id="tokens-layer-${cell.id}"></div>
                         `;
-                        target.appendChild(node);
+                        grid.appendChild(block);
                     });
                 },
 
                 sync: function() {
-                    // Синхронізація власників
+                    // Update Portfolio Layers
                     Engine.Config.mapData.forEach(cell => {
-                        let tBox = document.getElementById(`token-box-${cell.id}`);
-                        if(tBox) tBox.innerHTML = "";
+                        let tokenContainer = document.getElementById(`tokens-layer-${cell.id}`);
+                        if(tokenContainer) tokenContainer.innerHTML = "";
 
-                        let ownerLbl = document.getElementById(`owner-lbl-${cell.id}`);
-                        let buildBox = document.getElementById(`build-box-${cell.id}`);
+                        let ownerTag = document.getElementById(`owner-tag-${cell.id}`);
+                        let infraBox = document.getElementById(`infra-layer-${cell.id}`);
 
-                        if(ownerLbl && cell.owner) {
-                            let ownerObj = Engine.State.players[cell.owner];
-                            ownerLbl.innerText = ownerObj.id === 'p1' ? 'Ти' : 'ШІ';
-                            ownerLbl.style.backgroundColor = ownerObj.color;
-                            ownerLbl.style.color = "#000";
+                        if(cell.owner) {
+                            let parsedOwner = Engine.State.players[cell.owner];
+                            if(ownerTag) {
+                                ownerTag.innerText = parsedOwner.id === 'p1' ? 'YOU' : 'AI';
+                                ownerTag.style.background = parsedOwner.color;
+                                ownerTag.style.color = '#000';
+                            }
 
-                            if(buildBox) {
-                                buildBox.innerHTML = "";
-                                if(cell.lvl === 4) {
-                                    buildBox.innerHTML = `<div class="b-hub"></div>`;
+                            if(infraBox && cell.type === 'property') {
+                                infraBox.innerHTML = "";
+                                if(cell.lvl === 6) {
+                                    infraBox.innerHTML = `<div class="hotel-node"></div>`;
                                 } else {
-                                    for(let i=0; i<cell.lvl; i++) { buildBox.innerHTML += `<div class="b-dot"></div>`; }
+                                    for(let i = 1; i < cell.lvl; i++) {
+                                        infraBox.innerHTML += `<div class="house-node"></div>`;
+                                    }
                                 }
                             }
                         }
                     });
 
-                    // Фішки
+                    // Render Vector Player Markers
                     Object.values(Engine.State.players).forEach(p => {
-                        let tk = document.createElement('div');
-                        tk.className = "p-token";
-                        tk.style.backgroundColor = p.color;
-                        let box = document.getElementById(`token-box-${p.pos}`);
-                        if(box) box.appendChild(tk);
+                        let token = document.createElement('div');
+                        token.className = "map-token";
+                        token.style.background = p.color;
+                        let spot = document.getElementById(`tokens-layer-${p.pos}`);
+                        if(spot) spot.appendChild(token);
                     });
 
-                    // Лідери
-                    let list = document.getElementById('investor-list-target');
-                    list.innerHTML = "";
+                    // Room Capitalization Synchronizer
+                    let boardRoom = document.getElementById('leaderboard-dom-target');
+                    boardRoom.innerHTML = "";
                     Object.values(Engine.State.players).forEach(p => {
-                        list.innerHTML += `
-                            <div class="corp-row ${Engine.State.turn === p.id ? 'active-turn' : ''}">
-                                <div><b>${p.name}</b> <br><small style="color:var(--text-muted)">${p.role.toUpperCase()}</small></div>
-                                <div class="corp-money">$${p.money}</div>
+                        boardRoom.innerHTML += `
+                            <div class="player-row ${Engine.State.activeTurn === p.id ? 'active-border' : ''}">
+                                <div><strong>${p.name}</strong><br><small style="color:var(--text-gray); text-transform:uppercase;">${p.role}</small></div>
+                                <div class="player-assets-cash">$${p.cash}</div>
                             </div>
                         `;
                     });
 
-                    // --- ЖОРСТКИЙ ФІКС КНОПКИ КИДКА ---
-                    let isP1 = Engine.State.turn === "p1";
-                    document.getElementById('turn-status').innerText = isP1 ? "Ваша черга діяти" : "Аналіз ринку ботом ШІ...";
+                    // Interactive State System Monitor
+                    let isYourTurn = Engine.State.activeTurn === "p1";
+                    document.getElementById('turn-descriptor').innerText = isYourTurn ? "Your Execution Window" : "AI Restructuring Matrix...";
                     
-                    let rBtn = document.getElementById('btn-roll');
-                    // Кнопка має відображатися ЗАВЖДИ, якщо хід твій і не відкриті вікна купівлі/оплати
-                    if (isP1 && 
-                        document.getElementById('btn-buy').style.display === 'none' && 
-                        document.getElementById('btn-upgrade').style.display === 'none' && 
-                        document.getElementById('btn-pass').style.display === 'none') {
-                        rBtn.style.display = 'block';
+                    let targetClicker = document.getElementById('dice-interactive-trigger');
+                    if(isYourTurn && !Engine.State.hasPendingAction) {
+                        targetClicker.style.pointerEvents = 'auto';
+                        document.getElementById('platform-callout-text').innerText = "👉 Click to Roll";
+                        document.getElementById('platform-callout-text').style.color = 'var(--accent-green)';
                     } else {
-                        rBtn.style.display = 'none';
-                    }
-
-                    let term = document.getElementById('terminal-target');
-                    term.innerHTML = Engine.State.logs.map(l => `<div class="log-line ${l.type}">${l.text}</div>`).reverse().join('');
-                }
-            },
-
-            Audio: {
-                context: null,
-                init: function() {
-                    if(!Engine.Audio.context) {
-                        try { Engine.Audio.context = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-                    }
-                },
-                triggerSound: function(type) {
-                    if(!Engine.Audio.context) return;
-                    let ctx = Engine.Audio.context;
-                    if(ctx.state === 'suspended') ctx.resume();
-
-                    try {
-                        let osc = ctx.createOscillator();
-                        let gain = ctx.createGain();
-                        osc.connect(gain); gain.connect(ctx.destination);
-
-                        if(type === 'dice') {
-                            osc.frequency.setValueAtTime(280, ctx.currentTime);
-                            gain.gain.setValueAtTime(0.04, ctx.currentTime);
-                            osc.start(); osc.stop(ctx.currentTime + 0.08);
-                        } else if(type === 'buy') {
-                            osc.frequency.setValueAtTime(580, ctx.currentTime);
-                            gain.gain.setValueAtTime(0.05, ctx.currentTime);
-                            osc.start(); osc.stop(ctx.currentTime + 0.15);
-                        } else if(type === 'money') {
-                            osc.frequency.setValueAtTime(880, ctx.currentTime);
-                            gain.gain.setValueAtTime(0.03, ctx.currentTime);
-                            osc.start(); osc.stop(ctx.currentTime + 0.2);
+                        targetClicker.style.pointerEvents = 'none';
+                        if(!isYourTurn) {
+                            document.getElementById('platform-callout-text').innerText = "🤖 AI IS THINKING";
+                            document.getElementById('platform-callout-text').style.color = 'var(--accent-orange)';
                         }
-                    } catch(err){}
+                    }
+
+                    // Flush Terminal Pipelines
+                    let logMonitor = document.getElementById('terminal-dom-target');
+                    logMonitor.innerHTML = Engine.State.logs.map(l => `<div class="log-node ${l.type}">${l.text}</div>`).reverse().join('');
                 }
             }
         };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            Engine.UI.updateRolePreview();
-            if(window.Telegram?.WebApp) {
-                window.Telegram.WebApp.ready();
-                window.Telegram.WebApp.expand();
-            }
-        });
     </script>
 </body>
 </html>
