@@ -3,203 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Монополія Онлайн - Українська Версія</title>
+    <title>Monopoly Ultra Realtime - Ukraine Edition</title>
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
     <style>
         :root {
-            --bg-dark: #090d16;
-            --panel-bg: #111827;
-            --panel-border: #1f2937;
-            --accent-blue: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --accent-green: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-orange: #f97316;
-            --accent-red: #ef4444;
-            --text-light: #f9fafb;
-            --text-gray: #9ca3af;
+            --bg-main: #060913;
+            --panel-bg: #0f1626;
+            --panel-border: #1e293b;
+            --inner-shadow: rgba(0, 0, 0, 0.6);
             
-            --cell-w: 95px;
-            --cell-h: 115px;
+            /* Світлові акценти (UI & Класи) */
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-orange: #f97316;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            --text-dark: #0f172a;
+
+            /* Розміри клітин для десктопу (динамічно масштабуються через медіа-запити) */
+            --cell-w: 100px;
+            --cell-h: 130px;
+            --board-size: calc(var(--cell-h) * 2 + var(--cell-w) * 7 + 36px);
         }
 
+        /* Базове скидання та глобальні налаштування */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
+            font-family: 'SF Pro Display', -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            padding: 15px;
+            justify-content: flex-start;
+            padding: 20px;
             overflow-x: hidden;
         }
 
+        /* Заголовок та брендинг */
         header {
             text-align: center;
-            margin-bottom: 15px;
-            z-index: 10;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1400px;
         }
 
         header h1 {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
-            background-clip: text;
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
         }
 
-        /* МЕРЕЖЕВЕ ЛОБІ */
+        #tg-user-badge {
+            font-size: 13px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        /* ЕКРАН АВТОРИЗАЦІЇ ТА ЛОБІ */
         #auth-screen {
             background: var(--panel-bg);
             border: 2px solid var(--panel-border);
-            border-radius: 20px;
-            padding: 35px;
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
             max-width: 550px;
-            margin-top: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+            margin-top: 40px;
+            transition: all 0.3s ease;
         }
 
-        .auth-title {
-            font-size: 18px;
+        .auth-header {
+            font-size: 20px;
             font-weight: 800;
             text-transform: uppercase;
             color: var(--accent-cyan);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             border-bottom: 2px solid var(--panel-border);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            letter-spacing: 1px;
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        .input-group label {
+        .form-group label {
             display: block;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            color: var(--text-gray);
+            color: var(--text-muted);
             margin-bottom: 8px;
+            letter-spacing: 1px;
         }
 
-        .input-group input, .input-group select {
+        .form-group input, .form-group select {
             width: 100%;
-            background: #030712;
+            background: #03060f;
             border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            padding: 12px;
-            color: #fff;
-            font-size: 14px;
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text-main);
+            font-size: 15px;
+            font-weight: 600;
             outline: none;
+            transition: border-color 0.2s;
         }
 
-        .lobby-actions {
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .lobby-grid-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 14px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-        }
-
-        .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #000; }
-        .btn-success { background: linear-gradient(135deg, var(--accent-green), #059669); color: #000; }
-        .btn-secondary { background: var(--panel-border); color: #fff; }
-
-        #waiting-room {
-            display: none;
             margin-top: 25px;
-            padding-top: 20px;
+        }
+
+        /* Кнопки */
+        .ui-btn {
+            padding: 16px 24px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .ui-btn-primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: var(--text-dark); box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3); }
+        .ui-btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .ui-btn-success { background: linear-gradient(135deg, var(--accent-green), #059669); color: var(--text-dark); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .ui-btn-success:hover { opacity: 0.9; transform: translateY(-1px); }
+        .ui-btn-danger { background: linear-gradient(135deg, var(--accent-red), #b91c1c); color: var(--text-main); }
+        .ui-btn-secondary { background: var(--panel-border); color: var(--text-main); }
+        .ui-btn-secondary:hover { background: #2d3d52; }
+        .ui-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+        /* Очікування в лобі */
+        #waiting-area {
+            display: none;
+            margin-top: 30px;
+            padding-top: 25px;
             border-top: 1px solid var(--panel-border);
             text-align: center;
         }
 
-        .room-id-badge {
-            font-size: 28px;
+        .lobby-code-badge {
+            font-size: 32px;
             color: var(--accent-cyan);
             font-weight: 900;
             margin: 15px 0;
-            letter-spacing: 4px;
-            font-family: monospace;
+            letter-spacing: 6px;
+            font-family: 'Courier New', monospace;
+            background: #03060f;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px dashed var(--panel-border);
+            display: inline-block;
         }
 
-        /* ІГРОВИЙ ЕКРАН */
+        /* ОСНОВНИЙ ІГРОВИЙ ЕКРАН */
         #game-screen {
             display: none;
             width: 100%;
-            max-width: 1600px;
+            max-width: 1650px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
-        .main-container {
+        .game-layout-container {
             display: flex;
             gap: 25px;
             justify-content: center;
             align-items: flex-start;
             flex-wrap: wrap;
+            width: 100%;
         }
 
-        .board-wrapper {
-            background: #030712;
-            padding: 12px;
-            border-radius: 24px;
+        /* КАРТА МОНОПОЛІЇ */
+        .board-viewport {
+            background: #02040a;
+            padding: 16px;
+            border-radius: 28px;
             border: 2px solid var(--panel-border);
-            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.9);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+            width: var(--board-size);
+            height: var(--board-size);
+            flex-shrink: 0;
         }
 
-        .board-grid {
+        .board-matrix {
             display: grid;
             grid-template-columns: var(--cell-h) repeat(7, var(--cell-w)) var(--cell-h);
             grid-template-rows: var(--cell-h) repeat(7, var(--cell-w)) var(--cell-h);
             gap: 4px;
             width: 100%;
+            height: 100%;
         }
 
-        /* КЛІТИНИ ПОЛЯ */
-        .cell {
+        /* Адаптивність клітин під борти поля */
+        .cell-unit {
             background: var(--panel-bg);
-            border: 1px solid rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.01);
             border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 6px;
+            padding: 8px 6px;
             position: relative;
             overflow: hidden;
+            transition: background 0.2s;
         }
 
-        .cell-stripe { position: absolute; background: transparent; z-index: 1; }
-        .row-top .cell-stripe { top: 0; left: 0; right: 0; height: 12px; }
-        .col-right .cell-stripe { right: 0; top: 0; bottom: 0; width: 12px; }
-        .row-bottom .cell-stripe { bottom: 0; left: 0; right: 0; height: 12px; }
-        .col-left .cell-stripe { left: 0; top: 0; bottom: 0; width: 12px; }
+        /* Індикатори груп (кольорові смужки) */
+        .cell-stripe-indicator { position: absolute; background: transparent; z-index: 1; }
+        .border-top-side .cell-stripe-indicator { top: 0; left: 0; right: 0; height: 14px; }
+        .border-right-side .cell-stripe-indicator { right: 0; top: 0; bottom: 0; width: 14px; }
+        .border-bottom-side .cell-stripe-indicator { bottom: 0; left: 0; right: 0; height: 14px; }
+        .border-left-side .cell-stripe-indicator { left: 0; top: 0; bottom: 0; width: 14px; }
 
-        .cell-title {
+        .cell-meta-title {
             font-size: 9px;
             font-weight: 800;
             text-transform: uppercase;
@@ -208,107 +267,156 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 14px;
+            z-index: 2;
+        }
+        .border-top-side .cell-meta-title { margin-top: 14px; }
+
+        .cell-center-graphic {
+            font-size: 22px;
+            margin: auto 0;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .cell-price-tag {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            font-family: monospace;
             z-index: 2;
         }
 
-        .cell-icon { font-size: 18px; margin: auto 0; z-index: 2; }
-        .cell-price { font-size: 9px; font-weight: 700; color: var(--accent-cyan); z-index: 2; }
+        /* Рівні модернізації (Будинки / Філії) */
+        .cell-level-container { position: absolute; display: flex; gap: 2px; z-index: 3; }
+        .border-top-side .cell-level-container { top: 18px; left: 6px; }
+        .border-right-side .cell-level-container { right: 18px; top: 6px; flex-direction: column; }
+        .border-bottom-side .cell-level-container { bottom: 18px; left: 6px; }
+        .border-left-side .cell-level-container { left: 18px; top: 6px; flex-direction: column; }
 
-        /* Філії (Будинки) */
-        .cell-infrastructure { position: absolute; display: flex; gap: 2px; z-index: 3; }
-        .row-top .cell-infrastructure { top: 16px; }
-        .col-right .cell-infrastructure { right: 16px; flex-direction: column; }
-        .row-bottom .cell-infrastructure { bottom: 16px; }
-        .col-left .cell-infrastructure { left: 16px; flex-direction: column; }
+        .infrastructure-house { width: 7px; height: 7px; background: var(--accent-green); border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .infrastructure-hotel { width: 16px; height: 7px; background: var(--accent-red); border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
 
-        .house-node { width: 6px; height: 6px; background: var(--accent-green); border-radius: 1px; }
-        .hotel-node { width: 14px; height: 6px; background: var(--accent-red); border-radius: 1px; }
-
-        .cell-owner-tag {
+        /* Власники клітин */
+        .cell-owner-label {
             position: absolute;
             font-size: 8px;
             font-weight: 900;
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 2px 5px;
+            border-radius: 4px;
             text-transform: uppercase;
             z-index: 4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 0.5px;
         }
-        .row-top .cell-owner-tag { bottom: 16px; }
-        .col-right .cell-owner-tag { left: 16px; }
-        .row-bottom .cell-owner-tag { top: 16px; }
-        .col-left .cell-owner-tag { right: 16px; }
+        .border-top-side .cell-owner-label { bottom: 18px; }
+        .border-right-side .cell-owner-label { left: 18px; }
+        .border-bottom-side .cell-owner-label { top: 18px; }
+        .border-left-side .cell-owner-label { right: 18px; }
 
-        /* Клітини-позиції */
-        .pos-0  { grid-column: 1; grid-row: 1; } .pos-1  { grid-column: 2; grid-row: 1; }
-        .pos-2  { grid-column: 3; grid-row: 1; } .pos-3  { grid-column: 4; grid-row: 1; }
-        .pos-4  { grid-column: 5; grid-row: 1; } .pos-5  { grid-column: 6; grid-row: 1; }
-        .pos-6  { grid-column: 7; grid-row: 1; } .pos-7  { grid-column: 8; grid-row: 1; }
-        .pos-8  { grid-column: 9; grid-row: 1; } .pos-9  { grid-column: 9; grid-row: 2; }
-        .pos-10 { grid-column: 9; grid-row: 3; } .pos-11 { grid-column: 9; grid-row: 4; }
-        .pos-12 { grid-column: 9; grid-row: 5; } .pos-13 { grid-column: 9; grid-row: 6; }
-        .pos-14 { grid-column: 9; grid-row: 7; } .pos-15 { grid-column: 9; grid-row: 8; }
-        .pos-16 { grid-column: 9; grid-row: 9; } .pos-17 { grid-column: 8; grid-row: 9; }
-        .pos-18 { grid-column: 7; grid-row: 9; } .pos-19 { grid-column: 6; grid-row: 9; }
-        .pos-20 { grid-column: 5; grid-row: 9; } .pos-21 { grid-column: 4; grid-row: 9; }
-        .pos-22 { grid-column: 3; grid-row: 9; } .pos-23 { grid-column: 2; grid-row: 9; }
-        .pos-24 { grid-column: 1; grid-row: 9; } .pos-25 { grid-column: 1; grid-row: 8; }
-        .pos-26 { grid-column: 1; grid-row: 7; } .pos-27 { grid-column: 1; grid-row: 6; }
-        .pos-28 { grid-column: 1; grid-row: 5; } .pos-29 { grid-column: 1; grid-row: 4; }
-        .pos-30 { grid-column: 1; grid-row: 3; } .pos-31 { grid-column: 1; grid-row: 2; }
+        /* Позиціонування кутів і сторін сітки на 32 клітини */
+        .pos-0  { grid-column: 1; grid-row: 1; }  .pos-1  { grid-column: 2; grid-row: 1; }
+        .pos-2  { grid-column: 3; grid-row: 1; }  .pos-3  { grid-column: 4; grid-row: 1; }
+        .pos-4  { grid-column: 5; grid-row: 1; }  .pos-5  { grid-column: 6; grid-row: 1; }
+        .pos-6  { grid-column: 7; grid-row: 1; }  .pos-7  { grid-column: 8; grid-row: 1; }
+        .pos-8  { grid-column: 9; grid-row: 1; }  .pos-9  { grid-column: 9; grid-row: 2; }
+        .pos-10 { grid-column: 9; grid-row: 3; }  .pos-11 { grid-column: 9; grid-row: 4; }
+        .pos-12 { grid-column: 9; grid-row: 5; }  .pos-13 { grid-column: 9; grid-row: 6; }
+        .pos-14 { grid-column: 9; grid-row: 7; }  .pos-15 { grid-column: 9; grid-row: 8; }
+        .pos-16 { grid-column: 9; grid-row: 9; }  .pos-17 { grid-column: 8; grid-row: 9; }
+        .pos-18 { grid-column: 7; grid-row: 9; }  .pos-19 { grid-column: 6; grid-row: 9; }
+        .pos-20 { grid-column: 5; grid-row: 9; }  .pos-21 { grid-column: 4; grid-row: 9; }
+        .pos-22 { grid-column: 3; grid-row: 9; }  .pos-23 { grid-column: 2; grid-row: 9; }
+        .pos-24 { grid-column: 1; grid-row: 9; }  .pos-25 { grid-column: 1; grid-row: 8; }
+        .pos-26 { grid-column: 1; grid-row: 7; }  .pos-27 { grid-column: 1; grid-row: 6; }
+        .pos-28 { grid-column: 1; grid-row: 5; }  .pos-29 { grid-column: 1; grid-row: 4; }
+        .pos-30 { grid-column: 1; grid-row: 3; }  .pos-31 { grid-column: 1; grid-row: 2; }
 
-        /* ЦЕНТР ПОЛЯ */
-        .board-center {
+        /* СЕРЕДИНА КАРТИ (КОНТРОЛЛЕР КУБИКІВ) */
+        .board-center-core {
             grid-column: 2 / 9;
             grid-row: 2 / 9;
-            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-            border-radius: 12px;
+            background: radial-gradient(circle at center, #131b2e 0%, #050811 100%);
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 30px;
             position: relative;
+            box-shadow: inset 0 0 40px var(--inner-shadow);
         }
 
-        .central-dice-platform {
-            background: rgba(31, 41, 55, 0.4);
-            border: 2px dashed var(--accent-cyan);
-            border-radius: 20px;
-            padding: 25px 40px;
+        .dice-dropzone-platform {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px dashed rgba(6, 182, 212, 0.4);
+            border-radius: 24px;
+            padding: 30px 45px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
-        .dice-row { display: flex; gap: 20px; }
-        .dice-cube {
-            width: 65px;
-            height: 65px;
+        .dice-dropzone-platform:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 15px 40px rgba(6, 182, 212, 0.15);
+        }
+
+        .dice-box-row { display: flex; gap: 25px; }
+        
+        .dice-element {
+            width: 70px;
+            height: 70px;
             background: #ffffff;
-            color: #0f172a;
-            border-radius: 12px;
-            font-size: 42px;
+            color: #020617;
+            border-radius: 14px;
+            font-size: 46px;
             font-weight: 900;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.6), inset 0 -4px 0 #cbd5e1;
+            transition: transform 0.1s ease;
         }
 
-        .platform-callout {
+        .dice-status-callout {
             font-size: 11px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: var(--accent-green);
+            color: var(--accent-cyan);
+            text-align: center;
         }
 
-        /* ТОКЕНИ (ФІШКИ) ГРАВЦІВ */
-        .token-housing {
+        #turn-global-indicator {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 20px;
+            letter-spacing: 1.5px;
+            background: rgba(0,0,0,0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .board-center-watermark {
+            position: absolute;
+            font-size: 56px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.02);
+            letter-spacing: 10px;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        /* СЛОТИ ДЛЯ ФІШОК НА КЛІТИНАХ */
+        .cell-tokens-tray {
             position: absolute;
             bottom: 6px;
             left: 0;
@@ -318,242 +426,259 @@
             flex-wrap: wrap;
             gap: 3px;
             z-index: 10;
+            padding: 0 4px;
         }
 
-        .map-token {
-            width: 12px;
-            height: 12px;
+        .player-pawn {
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.8);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* БІЧНІ ДАНІ */
-        .side-panel {
+        /* БІЧНА СИСТЕМНА ПАНЕЛЬ (СТАТИСТИКА, ЛОГИ, ДІЇ) */
+        .side-control-panel {
             flex: 1;
-            min-width: 360px;
-            max-width: 440px;
+            min-width: 380px;
+            max-width: 460px;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
-        .card-panel {
+        .panel-card {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
-        .card-panel h3 {
-            font-size: 12px;
+        .panel-card h3 {
+            font-size: 13px;
             text-transform: uppercase;
-            color: var(--text-gray);
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            border-left: 3px solid var(--accent-blue);
-            padding-left: 8px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 10px;
+            font-weight: 800;
         }
 
-        .action-hub-box { display: flex; flex-direction: column; gap: 10px; }
+        /* Робочий хаб дій */
+        .hub-action-layout { display: flex; flex-direction: column; gap: 12px; }
 
-        .player-row {
+        /* Таблиця корпорацій */
+        .leaderboard-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(3, 7, 18, 0.4);
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 8px;
+            background: rgba(3, 6, 15, 0.5);
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 10px;
             border-left: 4px solid transparent;
+            transition: all 0.2s;
         }
 
-        .player-row.active-border {
+        .leaderboard-row.current-active-player {
             border-left-color: var(--accent-cyan);
-            background: rgba(6, 182, 212, 0.04);
+            background: rgba(6, 182, 212, 0.05);
+            box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.05);
         }
 
-        .player-assets-cash {
+        .corp-identity-box strong { font-size: 15px; font-weight: 700; }
+        .corp-identity-box div { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; }
+
+        .corp-financial-balance {
             font-weight: 800;
             color: var(--accent-green);
-            font-family: monospace;
-            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 17px;
         }
 
-        .terminal-log {
-            height: 150px;
+        /* Консоль транзакцій */
+        .terminal-log-flow {
+            height: 180px;
             overflow-y: auto;
             font-family: monospace;
-            font-size: 11px;
+            font-size: 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
+            padding-right: 5px;
         }
 
-        .log-node { padding: 4px 8px; background: rgba(0,0,0,0.2); border-radius: 4px; }
-        .log-node.sys { color: var(--accent-cyan); }
-        .log-node.alert { color: var(--accent-red); }
-        .log-node.good { color: var(--accent-green); }
-        .log-node.warn { color: var(--accent-orange); }
+        /* Кастомізація скроллбару логів */
+        .terminal-log-flow::-webkit-scrollbar { width: 4px; }
+        .terminal-log-flow::-webkit-scrollbar-track { background: transparent; }
+        .terminal-log-flow::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
 
-        @media (max-width: 1100px) {
-            :root { --cell-w: 10.5vw; --cell-h: 12.5vw; }
-            .side-panel { width: 100%; max-width: 100%; }
+        .log-line { padding: 6px 10px; background: rgba(0,0,0,0.2); border-radius: 6px; line-height: 1.4; }
+        .log-line.sys { color: var(--accent-cyan); border-left: 2px solid var(--accent-cyan); }
+        .log-line.alert { color: var(--accent-red); border-left: 2px solid var(--accent-red); }
+        .log-line.good { color: var(--accent-green); border-left: 2px solid var(--accent-green); }
+        .log-line.warn { color: var(--accent-orange); border-left: 2px solid var(--accent-orange); }
+
+        /* АДАПТИВНІСТЬ ДЛЯ СЕГМЕНТУ МОБІЛЬНИХ ДЕВАЙСІВ (TELEGRAM MINI APPS) */
+        @media (max-width: 1150px) {
+            :root {
+                --cell-w: 10.2vw;
+                --cell-h: 13.5vw;
+            }
+            body { padding: 10px; }
+            header h1 { font-size: 24px; }
+            .board-viewport { width: var(--board-size); height: var(--board-size); padding: 8px; border-radius: 16px; }
+            .cell-unit { padding: 4px 2px; border-radius: 4px; }
+            .cell-meta-title { font-size: 7px; margin-top: 10px !important; }
+            .cell-center-graphic { font-size: 14px; }
+            .cell-price-tag { font-size: 7px; }
+            .player-pawn { width: 8px; height: 8px; border-width: 1px; }
+            .side-control-panel { width: 100%; max-width: 100%; min-width: 100%; }
+            .dice-element { width: 50px; height: 50px; font-size: 32px; }
+            .dice-dropzone-platform { padding: 15px 25px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Монополія Онлайн</h1>
-        <div id="tg-identity" style="font-size: 12px; color: var(--accent-cyan); margin-top: 5px;"></div>
+        <h1 id="main-title-node">Monopoly Ultra</h1>
+        <div id="tg-user-badge">Завантаження профілю Telegram...</div>
     </header>
 
-    <!-- ЕКРАН ПІДКЛЮЧЕННЯ -->
     <div id="auth-screen">
-        <div class="auth-title">Створення / Вхід в Онлайн PVP</div>
-        <div class="input-group">
-            <label>Нікнейм вашої компанії</label>
-            <input type="text" id="player-nickname" placeholder="Введіть назву компанії">
+        <div class="auth-header">Створення / Підключення до PVP сесії</div>
+        
+        <div class="form-group">
+            <label>Назва вашої корпорації</label>
+            <input type="text" id="input-corp-name" placeholder="Наприклад: UA Capital, Трейдери..." maxlength="16">
         </div>
-        <div class="input-group">
-            <label>Оберіть стратегію (Клас)</label>
-            <select id="player-role">
-                <option value="shark">🦈 Акула Бізнесу (+$450 за коло)</option>
-                <option value="tycoon">💼 Промисловий Магнат (-30% на апгрейд філій)</option>
+        
+        <div class="form-group">
+            <label>Корпоративна стратегія (Клас)</label>
+            <select id="select-corp-role">
+                <option value="shark">🦈 Акула Бізнесу (+$450 при проходженні кола)</option>
+                <option value="tycoon">💼 Промисловий Магнат (-30% на будівництво філій)</option>
+                <option value="banker">🏦 Федеральний Банкір (Стартовий капітал $2000 замість $1500)</option>
             </select>
         </div>
 
-        <div class="lobby-actions">
-            <button class="btn btn-primary" onclick="App.Network.initRoom(true)">Створити лобі</button>
-            <button class="btn btn-success" onclick="App.Network.initRoom(false)">Увійти за ID</button>
+        <div class="lobby-grid-actions">
+            <button class="ui-btn ui-btn-primary" id="btn-action-create" onclick="App.Network.createRoom()">Створити Лобі</button>
+            <button class="ui-btn ui-btn-success" id="btn-action-join" onclick="App.Network.joinRoomPrompt()">Приєднатися</button>
         </div>
 
-        <div id="waiting-room">
-            <p>Надішліть цей ID іншим гравцям для підключення:</p>
-            <div class="room-id-badge" id="room-id-display">------</div>
-            <p style="font-size: 13px; margin-bottom: 15px;">Підключено гравців: <span id="lobby-count" style="color:var(--accent-green); font-weight:900;">0</span></p>
-            <button class="btn btn-success" id="start-match-trigger" style="width: 100%; display: none;" onclick="App.Network.startMatch()">Запустити гру 🚀</button>
+        <div id="waiting-area">
+            <p style="font-size:13px; color:var(--text-muted);">Надішліть цей ID партнерам по грі:</p>
+            <div class="lobby-code-badge" id="lobby-code-display">------</div>
+            <p style="font-size: 14px; font-weight:700; margin-bottom: 20px;">Готових корпорацій в лобі: <span id="lobby-connected-counter" style="color:var(--accent-green);">0</span> / 4</p>
+            <button class="ui-btn ui-btn-success" id="btn-matchmaker-start" style="width: 100%; display: none;" onclick="App.Network.startMatch()">Запустити Сейшн 🚀</button>
         </div>
     </div>
 
-    <!-- ІГРОВИЙ ІНТЕРФЕЙС -->
     <div id="game-screen">
-        <div class="main-container">
+        <div class="game-layout-container">
             
-            <div class="board-wrapper">
-                <div class="board-grid" id="board-grid-dom">
+            <div class="board-viewport">
+                <div class="board-matrix" id="board-grid-dom-target">
                     
-                    <div class="board-center">
-                        <div class="central-dice-platform" id="dice-clickable-trigger" onclick="App.Gameplay.rollDice()">
-                            <div class="dice-row">
-                                <div class="dice-cube" id="cube-ui-1">⚀</div>
-                                <div class="dice-cube" id="cube-ui-2">⚀</div>
+                    <div class="board-center-core">
+                        <div class="board-center-watermark">Ukraine</div>
+                        
+                        <div class="dice-dropzone-platform" id="dice-clickable-area" onclick="App.Gameplay.rollDice()">
+                            <div class="dice-box-row">
+                                <div class="dice-element" id="cube-node-1">⚀</div>
+                                <div class="dice-element" id="cube-node-2">⚀</div>
                             </div>
-                            <div class="platform-callout" id="platform-callout-text">Завантаження...</div>
+                            <div class="dice-status-callout" id="dice-status-subtext">Чекаємо з'єднання...</div>
                         </div>
-                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">Очікування мережі</div>
+                        
+                        <div id="turn-global-indicator">Ініціалізація ходів...</div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- КЕРУВАННЯ ТА СТАТИСТИКА -->
-            <div class="side-panel">
-                <div class="card-panel" id="action-panel-wks" style="display: none; border-color: var(--accent-cyan);">
-                    <h3>⚡ Доступні дії</h3>
-                    <div class="action-hub-box">
-                        <button class="btn btn-primary" id="hub-action-main" style="width:100%; font-weight:900;"></button>
-                        <button class="btn btn-secondary" id="hub-action-pass" style="width:100%;" onclick="App.Gameplay.confirmPass()">Пропустити хід / Завершити</button>
+            <div class="side-control-panel">
+                
+                <div class="panel-card" id="action-workspace-card" style="display: none; border-color: var(--accent-cyan); background: radial-gradient(ellipse at top, #132238 0%, #0f1626 100%);">
+                    <h3 style="color:var(--accent-cyan); border-left-color:var(--accent-cyan);">⚡ Доступні бізнес-операції</h3>
+                    <div class="hub-action-layout">
+                        <button class="ui-btn ui-btn-primary" id="btn-hub-primary-action" style="width:100%; font-weight:900; font-size:14px;"></button>
+                        <button class="ui-btn ui-btn-secondary" id="btn-hub-secondary-pass" style="width:100%;" onclick="App.Gameplay.confirmPass()">Завершити фінансовий хід</button>
                     </div>
                 </div>
 
-                <div class="card-panel">
-                    <h3>📊 Активи корпорацій</h3>
-                    <div id="leaderboard-dom-target"></div>
+                <div class="panel-card">
+                    <h3>📊 Стан активів корпорацій</h3>
+                    <div id="leaderboard-in-game-target"></div>
                 </div>
 
-                <div class="card-panel">
-                    <h3>📜 Події онлайн-сесії</h3>
-                    <div class="terminal-log" id="terminal-dom-target"></div>
+                <div class="panel-card">
+                    <h3>📜 Реєстр фінансових транзакцій</h3>
+                    <div class="terminal-log-flow" id="terminal-log-target"></div>
                 </div>
+
             </div>
 
         </div>
     </div>
 
     <script>
-        // КОНФІГУРАЦІЯ FIREBASE
-       const firebaseConfig = {
-    // API ключ та інші ID візьми зі своїх налаштувань проекту (Project Settings -> Web App)
-    apiKey: "AIzaSy...", 
-    authDomain: "monopoliya-dbc97.firebaseapp.com",
-    
-    // ОСЬ ТУТ МИ СТАВИМО ПОСИЛАННЯ З ТВОГО СКРІНШОТУ image_4ed945.png:
-    databaseURL: "https://monopoliya-dbc97-default-rtdb.firebaseio.com", 
-    
-    projectId: "monopoliya-dbc97",
-    storageBucket: "monopoliya-dbc97.appspot.com",
-    messagingSenderId: "ТВІЙ_SENDER_ID",
-    appId: "ТВІЙ_APP_ID"
-};
-
-// Ініціалізація
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         const App = {
             Config: {
                 totalCells: 32,
-                startingCash: 1500,
                 baseSalary: 200,
-                tokenColors: ["var(--accent-cyan)", "var(--accent-red)", "var(--accent-purple)", "var(--accent-orange)"],
+                tokenColors: ["var(--accent-cyan)", "var(--accent-pink)", "var(--accent-purple)", "var(--accent-orange)"],
+                
+                // АБСОЛЮТНО ПОВНА БАЗА ДАНИХ ПОЛЯ НА 32 КЛІТИНИ З РЕНТНИМИ СТАВКАМИ ДО 5 РІВНЯ
                 mapData: [
-                    { id: 0, name: "СТАРТ", type: "start", icon: "🚀", edge: "top" },
-                    { id: 1, name: "АТБ-Маркет", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], group: "brown", edge: "top" },
-                    { id: 2, name: "Скриня громади", type: "chest", icon: "📦", edge: "top" },
-                    { id: 3, name: "Аврора", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], group: "brown", edge: "top" },
-                    { id: 4, name: "Податок на дохід", type: "tax", cost: 200, icon: "🏛️", edge: "top" },
-                    { id: 5, name: "Київська залізниця", type: "railroad", price: 200, group: "rail", edge: "top" },
-                    { id: 6, name: "АЗК OKKO", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], group: "lightblue", edge: "top" },
-                    { id: 7, name: "Шанс", type: "chance", icon: "⚡", edge: "top" },
-                    { id: 8, name: "АЗК WOG", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], group: "lightblue", edge: "top" },
-                    { id: 9, name: "СІЗО / Тюрма", type: "jail", icon: "🚔", edge: "right" },
-                    { id: 10, name: "Rozetka", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], group: "pink", edge: "right" },
-                    { id: 11, name: "ДТЕК Енерго", type: "utility", price: 150, group: "util", edge: "right" },
-                    { id: 12, name: "Comfy", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], group: "pink", edge: "right" },
-                    { id: 13, name: "Львівська залізниця", type: "railroad", price: 200, group: "rail", edge: "right" },
-                    { id: 14, name: "Нова Пошта", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], group: "orange", edge: "right" },
-                    { id: 15, name: "Скриня громади", type: "chest", icon: "📦", edge: "right" },
-                    { id: 16, name: "Укрпошта", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], group: "orange", edge: "right" },
-                    { id: 17, name: "Безкоштовна парковка", type: "parking", icon: "🅿️", edge: "bottom" },
-                    { id: 18, name: "Сільпо", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], group: "red", edge: "bottom" },
-                    { id: 19, name: "Шанс", type: "chance", icon: "⚡", edge: "bottom" },
-                    { id: 20, name: "Наша Ряба", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], group: "red", edge: "bottom" },
-                    { id: 21, name: "Одеський Порт", type: "railroad", price: 200, group: "rail", edge: "bottom" },
-                    { id: 22, name: "Львівські Круасани", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], group: "yellow", edge: "bottom" },
-                    { id: 23, name: "Моршинська", type: "utility", price: 150, group: "util", edge: "bottom" },
-                    { id: 24, name: "Monobank", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], group: "yellow", edge: "bottom" },
-                    { id: 25, name: "Відправка в тюрму", type: "gotojail", icon: "👮", edge: "left" },
-                    { id: 26, name: "SoftServe", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], group: "green", edge: "left" },
-                    { id: 27, name: "EPAM Systems", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], group: "green", edge: "left" },
-                    { id: 28, name: "Скриня громади", type: "chest", icon: "📦", edge: "left" },
-                    { id: 29, name: "Дніпровська логістика", type: "railroad", price: 200, group: "rail", edge: "left" },
-                    { id: 30, name: "Київстар", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], group: "darkblue", edge: "left" },
-                    { id: 31, name: "ПриватБанк", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], group: "darkblue", edge: "left" }
+                    { id: 0, name: "Стартова Точка", type: "start", icon: "🚀", edge: "top" },
+                    { id: 1, name: "ATB Market", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], group: "brown", edge: "top" },
+                    { id: 2, name: "Скриня Громади", type: "chest", icon: "📦", edge: "top" },
+                    { id: 3, name: "Аврора Мультимаркет", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], group: "brown", edge: "top" },
+                    { id: 4, name: "Венчурний Податок", type: "tax", cost: 200, icon: "⚡", edge: "top" },
+                    { id: 5, name: "OKKO АЗС", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], group: "orange", edge: "top" },
+                    { id: 6, name: "Крипто Шанс", type: "chance", icon: "🎰", edge: "top" },
+                    { id: 7, name: "WOG АЗС", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], group: "orange", edge: "top" },
+                    { id: 8, name: "Гауптвахта / СІЗО", type: "jail", icon: "🚔", edge: "right" },
+                    { id: 9, name: "Rozetka", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], group: "pink", edge: "right" },
+                    { id: 10, name: "ДТЕК Енерго", type: "utility", price: 150, group: "util", edge: "right" },
+                    { id: 11, name: "Comfy", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], group: "pink", edge: "right" },
+                    { id: 12, name: "Фінансовий Шанс", type: "chance", icon: "🎲", edge: "right" },
+                    { id: 13, name: "Нова Пошта", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], group: "yellow", edge: "right" },
+                    { id: 14, name: "Укрпошта", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], group: "yellow", edge: "right" },
+                    { id: 15, name: "Податкова Інспекція", type: "tax", cost: 150, icon: "🏛️", edge: "right" },
+                    { id: 16, name: "Вільна Парковка", type: "parking", icon: "🅿️", edge: "bottom" },
+                    { id: 17, name: "Сільпо", type: "property", price: 360, rent: [35, 175, 500, 1100, 1300, 1500], group: "red", edge: "bottom" },
+                    { id: 18, name: "Скриня Громади", type: "chest", icon: "📦", edge: "bottom" },
+                    { id: 19, name: "Наша Ряба", type: "property", price: 380, rent: [40, 200, 550, 1200, 1400, 1700], group: "red", edge: "bottom" },
+                    { id: 20, name: "Крипто Шанс", type: "chance", icon: "🎰", edge: "bottom" },
+                    { id: 21, name: "Lviv Croissants", type: "property", price: 420, rent: [45, 220, 600, 1300, 1500, 1850], group: "lightblue", edge: "bottom" },
+                    { id: 22, name: "Моршинська", type: "utility", price: 150, group: "util", edge: "bottom" },
+                    { id: 23, name: "Monobank", type: "property", price: 460, rent: [50, 240, 650, 1400, 1600, 2000], group: "lightblue", edge: "bottom" },
+                    { id: 24, name: "Офшорна Зона (Митниця)", type: "gotojail", icon: "🛂", edge: "left" },
+                    { id: 25, name: "SoftServe", type: "property", price: 520, rent: [55, 260, 700, 1500, 1800, 2200], group: "green", edge: "left" },
+                    { id: 26, name: "EPAM Systems", type: "property", price: 560, rent: [60, 280, 750, 1600, 1900, 2400], group: "green", edge: "left" },
+                    { id: 27, name: "Інвестиційний Шанс", type: "chance", icon: "📈", edge: "left" },
+                    { id: 28, name: "Київстар", type: "property", price: 620, rent: [70, 320, 850, 1800, 2100, 2600], group: "purple", edge: "left" },
+                    { id: 29, name: "ПриватБанк", type: "property", price: 700, rent: [100, 400, 1000, 2200, 2500, 3200], group: "purple", edge: "left" },
+                    { id: 30, name: "Скриня Громади", type: "chest", icon: "📦", edge: "left" },
+                    { id: 31, name: "Національний Банк UA", type: "utility", price: 200, group: "util", edge: "left" }
                 ],
                 groupColors: {
-                    brown: "#78350f", lightblue: "#0ea5e9", pink: "#ec4899", orange: "#f97316",
-                    red: "#ef4444", yellow: "#eab308", green: "#22c55e", darkblue: "#1d4ed8",
-                    rail: "#4b5563", util: "#84cc16"
+                    brown: "#54382b", orange: "#ea580c", pink: "#db2777", yellow: "#ca8a04",
+                    red: "#dc2626", lightblue: "#2563eb", green: "#16a34a", purple: "#7c3aed",
+                    util: "#4b5563"
                 },
                 chanceCards: [
-                    { txt: "Податкове повернення. Отримайте +$150.", type: "gift", cash: 150 },
-                    { txt: "Штраф за порушення екологічних норм. Сплатіть $100.", type: "fine", cash: 100 },
-                    { txt: "Військові облігації принесли прибуток. Отримайте +$200.", type: "gift", cash: 200 }
+                    { text: "Аудит успішний! Податкова повертає субсидію: +$200", type: "gift", sum: 200 },
+                    { text: "Дронова атака пошкодила склад. Терміновий ремонт: -$150", type: "fine", sum: 150 },
+                    { text: "Держзамовлення на софт! Отримано чистий прибуток: +$300", type: "gift", sum: 300 },
+                    { text: "Штраф за монополізацію локальних ринків: -$100", type: "fine", sum: 100 }
                 ]
             },
 
@@ -561,234 +686,335 @@ const database = firebase.database();
                 roomId: null,
                 myId: null,
                 roomData: null,
-                localRolling: false
+                localRolling: false,
+                gridRendered: false
             },
 
             Network: {
-                initRoom: function(isHost) {
-                    let nick = document.getElementById('player-nickname').value.trim();
-                    if(!nick) return alert("Будь ласка, введіть назву вашої компанії!");
+                // Створення кімнати хостом
+                createRoom: function() {
+                    let nick = document.getElementById('input-corp-name').value.trim();
+                    if(!nick) return alert("Помилка: Введіть назву вашої корпорації!");
 
-                    App.State.myId = "usr_" + Math.random().toString(36).substring(2, 9);
-                    let role = document.getElementById('player-role').value;
+                    App.State.myId = "corp_" + Math.random().toString(36).substring(2, 9);
+                    let role = document.getElementById('select-corp-role').value;
+                    App.State.roomId = Math.floor(100000 + Math.random() * 900000).toString();
 
-                    if(isHost) {
-                        App.State.roomId = Math.floor(100000 + Math.random() * 900000).toString();
-                        let newRoom = {
-                            status: "waiting",
-                            host: App.State.myId,
-                            turnIndex: 0,
-                            order: [App.State.myId],
-                            players: {},
-                            cells: {},
-                            logs: [{ type: "sys", text: `🏢 Лобі створено компанією ${nick}. Очікування гравців.` }]
-                        };
+                    let startingCash = App.Config.startingCash;
+                    if(role === 'banker') startingCash = 2000; // Бонус класу банкіра
 
-                        newRoom.players[App.State.myId] = { id: App.State.myId, name: nick, role: role, cash: App.Config.startingCash, pos: 0, color: App.Config.tokenColors[0], inJail: 0 };
-                        
-                        // Ініціалізуємо порожні рівні та власників для клітин поля
-                        App.Config.mapData.forEach(c => {
-                            newRoom.cells[c.id] = { owner: "", lvl: 0 };
-                        });
+                    let initialRoomStructure = {
+                        status: "waiting",
+                        host: App.State.myId,
+                        turnIndex: 0,
+                        order: [App.State.myId],
+                        pendingAction: null,
+                        lastRoll: { d1: 1, d2: 1, sum: 2 },
+                        players: {},
+                        cells: {},
+                        logs: [{ type: "sys", text: `🏢 Корпорація ${nick} заснувала нове лобі інвесторів. Очікування опонентів.` }]
+                    };
 
-                        db.ref('rooms/' + App.State.roomId).set(newRoom, (err) => {
-                            if(!err) App.Network.subAndBind();
-                        });
-                    } else {
-                        let enteredId = prompt("Введіть 6-значний ID кімнати:");
-                        if(!enteredId) return;
-                        App.State.roomId = enteredId.trim();
+                    initialRoomStructure.players[App.State.myId] = {
+                        id: App.State.myId,
+                        name: nick,
+                        role: role,
+                        cash: startingCash,
+                        pos: 0,
+                        color: App.Config.tokenColors[0],
+                        inJail: 0
+                    };
 
-                        db.ref('rooms/' + App.State.roomId).once('value', (snap) => {
-                            if(!snap.exists()) return alert("Кімнату не знайдено!");
-                            let d = snap.val();
-                            if(d.status !== "waiting") return alert("Гра вже триває!");
+                    // Заповнюємо нульову сітку власності на сервері
+                    App.Config.mapData.forEach(tile => {
+                        initialRoomStructure.cells[tile.id] = { owner: "", lvl: 0 };
+                    });
 
-                            let currentPlayersCount = Object.keys(d.players).length;
-                            if(currentPlayersCount >= 4) return alert("Кімната заповнена (макс. 4 гравці)!");
-
-                            let currentOrder = d.order || [];
-                            currentOrder.push(App.State.myId);
-
-                            let joinData = {
-                                id: App.State.myId, name: nick, role: role, cash: App.Config.startingCash, pos: 0,
-                                color: App.Config.tokenColors[currentPlayersCount], inJail: 0
-                            };
-
-                            let updates = {};
-                            updates[`/players/${App.State.myId}`] = joinData;
-                            updates[`/order`] = currentOrder;
-                            updates[`/logs/${d.logs ? d.logs.length : 0}`] = { type: "sys", text: `🤝 Компанія ${nick} приєдналася до гри.` };
-
-                            db.ref('rooms/' + App.State.roomId).update(updates, (err) => {
-                                if(!err) App.Network.subAndBind();
-                            });
-                        });
-                    }
+                    db.ref('rooms/' + App.State.roomId).set(initialRoomStructure, (err) => {
+                        if(!err) {
+                            App.Network.connectAndListen();
+                        } else {
+                            alert("Помилка підключення до Firebase database! Перевірте конфіг.");
+                        }
+                    });
                 },
 
-                subAndBind: function() {
-                    document.getElementById('waiting-room').style.display = 'block';
-                    document.getElementById('room-id-display').innerText = App.State.roomId;
+                // Вхід за введеним ID
+                joinRoomPrompt: function() {
+                    let nick = document.getElementById('input-corp-name').value.trim();
+                    if(!nick) return alert("Помилка: Спочатку введіть назву вашої корпорації!");
+
+                    let targetId = prompt("Введіть 6-значний цифровий код кімнати:");
+                    if(!targetId) return;
+                    App.State.roomId = targetId.trim();
+
+                    db.ref('rooms/' + App.State.roomId).once('value', (snap) => {
+                        if(!snap.exists()) return alert("Кімнату з таким кодом не знайдено!");
+                        let room = snap.val();
+                        if(room.status !== "waiting") return alert("Сесія вже активна або завершена!");
+
+                        let currentPlayersCount = Object.keys(room.players).length;
+                        if(currentPlayersCount >= 4) return alert("У кімнаті вже є макс. кількість корпорацій (4)!");
+
+                        App.State.myId = "corp_" + Math.random().toString(36).substring(2, 9);
+                        let role = document.getElementById('select-corp-role').value;
+                        let startingCash = App.Config.startingCash;
+                        if(role === 'banker') startingCash = 2000;
+
+                        let currentOrder = room.order || [];
+                        currentOrder.push(App.State.myId);
+
+                        let newPlayerData = {
+                            id: App.State.myId,
+                            name: nick,
+                            role: role,
+                            cash: startingCash,
+                            pos: 0,
+                            color: App.Config.tokenColors[currentPlayersCount],
+                            inJail: 0
+                        };
+
+                        let updates = {};
+                        updates[`/players/${App.State.myId}`] = newPlayerData;
+                        updates[`/order`] = currentOrder;
+                        updates[`/logs/${room.logs ? room.logs.length : 0}`] = { 
+                            type: "sys", 
+                            text: `🤝 Корпорація ${nick} увійшла на ринок. Учасників: ${currentOrder.length}/4.` 
+                        };
+
+                        db.ref('rooms/' + App.State.roomId).update(updates, (err) => {
+                            if(!err) App.Network.connectAndListen();
+                        });
+                    });
+                },
+
+                // Підписка на стрім змін з бази даних
+                connectAndListen: function() {
+                    document.getElementById('waiting-area').style.display = 'block';
+                    document.getElementById('lobby-code-display').innerText = App.State.roomId;
+                    document.getElementById('btn-action-create').disabled = true;
+                    document.getElementById('btn-action-join').disabled = true;
 
                     db.ref('rooms/' + App.State.roomId).on('value', (snap) => {
                         if(!snap.exists()) return;
                         let data = snap.val();
                         App.State.roomData = data;
 
-                        document.getElementById('lobby-count').innerText = Object.keys(data.players).length;
+                        let currentCount = Object.keys(data.players).length;
+                        document.getElementById('lobby-connected-counter').innerText = currentCount;
+
+                        // Тільки хост керує стартом
                         if(data.host === App.State.myId && data.status === "waiting") {
-                            document.getElementById('start-match-trigger').style.display = 'block';
+                            document.getElementById('btn-matchmaker-start').style.display = 'block';
                         }
 
                         if(data.status === "active") {
                             document.getElementById('auth-screen').style.display = 'none';
                             document.getElementById('game-screen').style.display = 'block';
-                            App.UI.sync();
+                            document.getElementById('game-screen').style.opacity = '1';
+                            App.UI.syncRealtimeData();
                         }
                     });
                 },
 
+                // Запуск гри хостом
                 startMatch: function() {
-                    if(App.State.roomData && Object.keys(App.State.roomData.players).length < 2) {
-                        return alert("Потрібно мінімум 2 гравці для запуску!");
+                    if(!App.State.roomData || Object.keys(App.State.roomData.players).length < 2) {
+                        return alert("Для повноцінної PVP гри необхідно як мінімум 2 гравці!");
                     }
                     db.ref('rooms/' + App.State.roomId).update({ status: "active" });
                 }
             },
 
             Gameplay: {
+                // Розрахунок кубиків з локальною анімацією
                 rollDice: function() {
-                    let d = App.State.roomData;
-                    let activeId = d.order[d.turnIndex];
-                    if(activeId !== App.State.myId || App.State.localRolling || d.pendingAction) return;
-
-                    App.State.localRolling = true;
-                    document.getElementById('platform-callout-text').innerText = "🎲 КУБИКИ КРУТЯТЬСЯ...";
-
-                    let ticks = 0;
-                    let d1 = 1, d2 = 1;
-                    let loop = setInterval(() => {
-                        d1 = Math.floor(Math.random() * 6) + 1;
-                        d2 = Math.floor(Math.random() * 6) + 1;
-                        document.getElementById('cube-ui-1').innerText = App.UI.getDiceChar(d1);
-                        document.getElementById('cube-ui-2').innerText = App.UI.getDiceChar(d2);
-                        ticks++;
-
-                        if(ticks > 8) {
-                            clearInterval(loop);
-                            App.State.localRolling = false;
-                            App.Gameplay.processMove(d1, d2);
-                        }
-                    }, 100);
-                },
-
-                processMove: function(d1, d2) {
                     let r = App.State.roomData;
-                    let me = r.players[App.State.myId];
-                    let total = d1 + d2;
-                    let prevPos = me.pos;
-                    let nextPos = (me.pos + total) % App.Config.totalCells;
+                    let activeId = r.order[r.turnIndex];
+                    if(activeId !== App.State.myId || App.State.localRolling || r.pendingAction) return;
 
-                    let logsCount = r.logs ? r.logs.length : 0;
-                    let updates = {};
-                    
-                    updates[`/players/${App.State.myId}/pos`] = nextPos;
-                    updates[`/lastRoll`] = { d1: d1, d2: d2, sum: total };
-                    updates[`/logs/${logsCount}`] = { type: "sys", text: `🎲 ${me.name} викидає [${d1}:${d2}] та йде на клітину ${nextPos}.` };
-                    
-                    if(nextPos < prevPos) {
-                        let bonus = me.role === 'shark' ? 450 : App.Config.baseSalary;
-                        updates[`/players/${App.State.myId}/cash`] = me.cash + bonus;
-                        updates[`/logs/${logsCount + 1}`] = { type: "good", text: `💸 ${me.name} пройшов коло! Бонус +$${bonus}` };
+                    let me = r.players[App.State.myId];
+                    let logIdx = r.logs ? r.logs.length : 0;
+
+                    // Обробка тюрми перед кидком
+                    if(me.inJail > 0) {
+                        let payJail = confirm(`Корпорація в СІЗО. Залишилось ходів: ${me.inJail}. Сплатити $100 за заставу, щоб вийти зараз?`);
+                        if(payJail) {
+                            let updates = {};
+                            updates[`/players/${App.State.myId}/inJail`] = 0;
+                            updates[`/players/${App.State.myId}/cash`] = me.cash - 100;
+                            updates[`/logs/${logIdx}`] = { type: "warn", text: `💸 ${me.name} вносить заставу $100 та виходить на волю!` };
+                            db.ref('rooms/' + App.State.roomId).update(updates);
+                            return;
+                        } else {
+                            let updates = {};
+                            updates[`/players/${App.State.myId}/inJail`] = me.inJail - 1;
+                            updates[`/logs/${logIdx}`] = { type: "warn", text: `🚔 ${me.name} відбуває термін в СІЗО. Хід пропущено.` };
+                            App.Gameplay.nextTurn(updates);
+                            db.ref('rooms/' + App.State.roomId).update(updates);
+                            return;
+                        }
                     }
 
-                    // Перевіряємо логіку клітини
-                    let tile = App.Config.mapData[nextPos];
-                    let serverTile = r.cells[nextPos];
+                    App.State.localRolling = true;
+                    document.getElementById('dice-status-subtext').innerText = "🎲 КУБИКИ ОБЕРТАЮТЬСЯ...";
 
-                    if((tile.type === "property" || tile.type === "railroad" || tile.type === "utility") && !serverTile.owner) {
-                        updates[`/pendingAction`] = { type: "buy", tileId: nextPos, actor: App.State.myId };
-                    } else if(serverTile.owner && serverTile.owner !== App.State.myId) {
-                        updates[`/pendingAction`] = { type: "rent", tileId: nextPos, actor: App.State.myId };
-                    } else if(tile.type === "tax") {
-                        updates[`/pendingAction`] = { type: "tax", tileId: nextPos, actor: App.State.myId };
-                    } else if(tile.type === "chance" || tile.type === "chest") {
-                        updates[`/pendingAction`] = { type: "event", tileId: nextPos, actor: App.State.myId };
-                    } else if(tile.type === "gotojail") {
-                        updates[`/players/${App.State.myId}/pos`] = 9;
-                        updates[`/players/${App.State.myId}/inJail`] = 3;
-                        updates[`/logs/${logsCount + 2}`] = { type: "alert", text: `🚔 ${me.name} затримано поліцією та відправлено в СІЗО.` };
+                    let ticks = 0;
+                    let num1 = 1, num2 = 1;
+                    
+                    let interval = setInterval(() => {
+                        num1 = Math.floor(Math.random() * 6) + 1;
+                        num2 = Math.floor(Math.random() * 6) + 1;
+                        document.getElementById('cube-node-1').innerText = App.UI.getDiceSymbol(num1);
+                        document.getElementById('cube-node-2').innerText = App.UI.getDiceSymbol(num2);
+                        ticks++;
+
+                        if(ticks > 12) {
+                            clearInterval(interval);
+                            App.State.localRolling = false;
+                            App.Gameplay.finalizeDiceMove(num1, num2);
+                        }
+                    }, 80);
+                },
+
+                // Переміщення фішки та вибір екшену клітини
+                finalizeDiceMove: function(d1, d2) {
+                    let r = App.State.roomData;
+                    let me = r.players[App.State.myId];
+                    let totalSteps = d1 + d2;
+                    let oldPos = me.pos;
+                    let targetPos = (me.pos + totalSteps) % App.Config.totalCells;
+
+                    let currentLogsCount = r.logs ? r.logs.length : 0;
+                    let updates = {};
+
+                    updates[`/players/${App.State.myId}/pos`] = targetPos;
+                    updates[`/lastRoll`] = { d1: d1, d2: d2, sum: totalSteps };
+                    updates[`/logs/${currentLogsCount}`] = { 
+                        type: "sys", 
+                        text: `🎲 ${me.name} викидає [${d1}:${d2}] та переміщує штаб-квартиру на клітину ${targetPos}.` 
+                    };
+
+                    // Фіксація проходження кола (СТАРТ)
+                    if(targetPos < oldPos) {
+                        let circleBonus = me.role === 'shark' ? 450 : App.Config.baseSalary;
+                        updates[`/players/${App.State.myId}/cash`] = me.cash + circleBonus;
+                        updates[`/logs/${currentLogsCount + 1}`] = { 
+                            type: "good", 
+                            text: `💸 Ринкове коло закрите! ${me.name} отримує дивіденди +$${circleBonus}` 
+                        };
+                    }
+
+                    let tileObj = App.Config.mapData[targetPos];
+                    let tileServerState = r.cells[targetPos];
+
+                    // Аналізатор логіки клітин поля
+                    if((tileObj.type === "property" || tileObj.type === "utility") && !tileServerState.owner) {
+                        updates[`/pendingAction`] = { type: "buy", tileId: targetPos, actor: App.State.myId };
+                    } 
+                    else if(tileServerState.owner && tileServerState.owner !== App.State.myId) {
+                        updates[`/pendingAction`] = { type: "rent", tileId: targetPos, actor: App.State.myId };
+                    } 
+                    else if(tileObj.type === "tax") {
+                        updates[`/pendingAction`] = { type: "tax", tileId: targetPos, actor: App.State.myId };
+                    } 
+                    else if(tileObj.type === "chance" || tileObj.type === "chest") {
+                        updates[`/pendingAction`] = { type: "event", tileId: targetPos, actor: App.State.myId };
+                    } 
+                    else if(tileObj.type === "gotojail") {
+                        updates[`/players/${App.State.myId}/pos`] = 8; // Індекс клітини СІЗО
+                        updates[`/players/${App.State.myId}/inJail`] = 3; // Бан на 3 ходи
+                        updates[`/logs/${currentLogsCount + 2}`] = { 
+                            type: "alert", 
+                            text: `🚔 Крах махінацій! Компанію ${me.name} арештовано податковою поліцією та відправлено в СІЗО.` 
+                        };
                     }
 
                     db.ref('rooms/' + App.State.roomId).update(updates);
                 },
 
-                handleAction: function() {
+                // Виконання поточної транзакції/дії на сервері
+                executeBusinessAction: function() {
                     let r = App.State.roomData;
-                    let action = r.pendingAction;
+                    let act = r.pendingAction;
                     let me = r.players[App.State.myId];
-                    let tile = App.Config.mapData[action.tileId];
-                    let serverTile = r.cells[action.tileId];
-                    let lIdx = r.logs ? r.logs.length : 0;
+                    let tile = App.Config.mapData[act.tileId];
+                    let serverTile = r.cells[act.tileId];
+                    let logLength = r.logs ? r.logs.length : 0;
 
                     let updates = {};
 
-                    if(action.type === "buy") {
-                        if(me.cash < tile.price) return alert("Недостатньо коштів!");
+                    if(act.type === "buy") {
+                        if(me.cash < tile.price) return alert("У вашої корпорації дефіцит бюджету! Недостатньо готівки.");
+                        
                         updates[`/players/${App.State.myId}/cash`] = me.cash - tile.price;
-                        updates[`/cells/${action.tileId}/owner`] = App.State.myId;
-                        if(tile.type === "property") updates[`/cells/${action.tileId}/lvl`] = 1;
-                        updates[`/logs/${lIdx}`] = { type: "good", text: `💼 ${me.name} придбав актив: ${tile.name}.` };
+                        updates[`/cells/${act.tileId}/owner`] = App.State.myId;
+                        if(tile.type === "property") updates[`/cells/${act.tileId}/lvl`] = 1;
+                        
+                        updates[`/logs/${logLength}`] = { type: "good", text: `💼 ${me.name} поглинає новий актив: ${tile.name} за $${tile.price}.` };
                         updates[`/pendingAction`] = null;
                         App.Gameplay.nextTurn(updates);
+                        db.ref('rooms/' + App.State.roomId).update(updates);
                     } 
-                    else if(action.type === "build") {
-                        let cost = Math.round(tile.price * 0.6);
-                        if(me.role === "tycoon") cost = Math.round(cost * 0.7);
-                        if(me.cash < cost) return alert("Недостатньо грошей для модернізації!");
+                    else if(act.type === "build") {
+                        let buildCost = Math.round(tile.price * 0.6);
+                        if(me.role === "tycoon") buildCost = Math.round(buildCost * 0.7); // Скидка магната
 
-                        updates[`/players/${App.State.myId}/cash`] = me.cash - cost;
-                        updates[`/cells/${action.tileId}/lvl`] = serverTile.lvl + 1;
-                        updates[`/logs/${lIdx}`] = { type: "good", text: `🏢 ${me.name} побудував нову філію в ${tile.name} (Рівень: ${serverTile.lvl + 1}).` };
+                        if(me.cash < buildCost) return alert("Брак ліквідності для інвестицій у модернізацію!");
+
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - buildCost;
+                        updates[`/cells/${act.tileId}/lvl`] = serverTile.lvl + 1;
+                        updates[`/logs/${logLength}`] = { 
+                            type: "good", 
+                            text: `🏢 ${me.name} відкриває філію в ${tile.name}. Рівень активу підвищено до ${serverTile.lvl + 1}.` 
+                        };
                         updates[`/pendingAction`] = null;
                         App.Gameplay.nextTurn(updates);
-                    }
-                    else if(action.type === "rent") {
-                        let owner = r.players[serverTile.owner];
-                        let rentCost = App.Gameplay.calcRent(tile, serverTile, r);
-                        
-                        updates[`/players/${App.State.myId}/cash`] = me.cash - rentCost;
-                        updates[`/players/${serverTile.owner}/cash`] = owner.cash + rentCost;
-                        updates[`/logs/${lIdx}`] = { type: "alert", text: `⚠️ ${me.name} сплатив оренду $${rentCost} для компанії ${owner.name}.` };
+                        db.ref('rooms/' + App.State.roomId).update(updates);
+                    } 
+                    else if(act.type === "rent") {
+                        let hostCorp = r.players[serverTile.owner];
+                        let finalRent = App.Gameplay.calculateRentFormula(tile, serverTile, r);
+
+                        updates[`/players/${App.State.myId}/cash`] = me.cash - finalRent;
+                        updates[`/players/${serverTile.owner}/cash`] = hostCorp.cash + finalRent;
+                        updates[`/logs/${logLength}`] = { 
+                            type: "alert", 
+                            text: `⚠️ Роялті: ${me.name} виплачує оренду $${finalRent} на рахунок ${hostCorp.name}.` 
+                        };
                         updates[`/pendingAction`] = null;
-                        
-                        App.Gameplay.checkBankruptcy(me.cash - rentCost, updates);
+
+                        App.Gameplay.evaluateBankruptcyState(me.cash - finalRent, updates);
                         App.Gameplay.nextTurn(updates);
-                    }
-                    else if(action.type === "tax") {
+                        db.ref('rooms/' + App.State.roomId).update(updates);
+                    } 
+                    else if(act.type === "tax") {
                         updates[`/players/${App.State.myId}/cash`] = me.cash - tile.cost;
-                        updates[`/logs/${lIdx}`] = { type: "alert", text: `🏛️ Компанія ${me.name} сплатила державні податки на суму $${tile.cost}.` };
-                        updates[`/pendingAction`] = null;
-                        
-                        App.Gameplay.checkBankruptcy(me.cash - tile.cost, updates);
-                        App.Gameplay.nextTurn(updates);
-                    }
-                    else if(action.type === "event") {
-                        let card = App.Config.chanceCards[Math.floor(Math.random() * App.Config.chanceCards.length)];
-                        let finalCash = me.cash;
-                        if(card.type === "gift") finalCash += card.cash;
-                        if(card.type === "fine") finalCash -= card.cash;
-
-                        updates[`/players/${App.State.myId}/cash`] = finalCash;
-                        updates[`/logs/${lIdx}`] = { type: "warn", text: `📜 ПОДІЯ: ${card.txt}` };
+                        updates[`/logs/${logLength}`] = { type: "alert", text: `🏛️ Регуляторні стягнення: ${me.name} сплачує держмито $${tile.cost}.` };
                         updates[`/pendingAction`] = null;
 
-                        if(card.type === "fine") App.Gameplay.checkBankruptcy(finalCash, updates);
+                        App.Gameplay.evaluateBankruptcyState(me.cash - tile.cost, updates);
                         App.Gameplay.nextTurn(updates);
+                        db.ref('rooms/' + App.State.roomId).update(updates);
+                    } 
+                    else if(act.type === "event") {
+                        let randomCard = App.Config.chanceCards[Math.floor(Math.random() * App.Config.chanceCards.length)];
+                        let calculatedCash = me.cash;
+
+                        if(randomCard.type === "gift") calculatedCash += randomCard.sum;
+                        if(randomCard.type === "fine") calculatedCash -= randomCard.sum;
+
+                        updates[`/players/${App.State.myId}/cash`] = calculatedCash;
+                        updates[`/logs/${logLength}`] = { type: "warn", text: `📜 ФОНДОВА ПОДІЯ: ${randomCard.text}` };
+                        updates[`/pendingAction`] = null;
+
+                        if(randomCard.type === "fine") App.Gameplay.evaluateBankruptcyState(calculatedCash, updates);
+                        App.Gameplay.nextTurn(updates);
+                        db.ref('rooms/' + App.State.roomId).update(updates);
                     }
                 },
 
+                // Завершення ходу без дій
                 confirmPass: function() {
                     let r = App.State.roomData;
                     if(r.order[r.turnIndex] !== App.State.myId || r.pendingAction) return;
@@ -797,226 +1023,228 @@ const database = firebase.database();
                     db.ref('rooms/' + App.State.roomId).update(updates);
                 },
 
+                // Передача черги ходу наступному живому гравцю
                 nextTurn: function(updates) {
                     let r = App.State.roomData;
                     updates[`/turnIndex`] = (r.turnIndex + 1) % r.order.length;
                 },
 
-                calcRent: function(tile, serverTile, r) {
-                    if(tile.type === "property") return tile.rent[serverTile.lvl];
-                    if(tile.type === "railroad") {
-                        let owned = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "rail" && r.cells[k].owner === serverTile.owner).length;
-                        return 25 * Math.pow(2, owned - 1);
+                // Динамічний калькулятор вартості ренти
+                calculateRentFormula: function(tile, serverTile, r) {
+                    if(tile.type === "property") {
+                        return tile.rent[serverTile.lvl] || tile.rent[0];
                     }
                     if(tile.type === "utility") {
-                        let owned = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "util" && r.cells[k].owner === serverTile.owner).length;
-                        let diceSum = r.lastRoll ? r.lastRoll.sum : 7;
-                        return diceSum * (owned === 2 ? 10 : 4);
+                        // Рахуємо кількість комунальних підприємств у власника
+                        let count = Object.keys(r.cells).filter(k => App.Config.mapData[k].group === "util" && r.cells[k].owner === serverTile.owner).length;
+                        let cubesSum = r.lastRoll ? r.lastRoll.sum : 7;
+                        return cubesSum * (count === 3 ? 15 : 6);
                     }
                     return 0;
                 },
 
-                checkBankruptcy: function(balance, updates) {
+                // Система відстеження дефолту корпорацій
+                evaluateBankruptcyState: function(balance, updates) {
                     if(balance < 0) {
                         let me = App.State.roomData.players[App.State.myId];
-                        let lIdx = App.State.roomData.logs ? App.State.roomData.logs.length : 0;
-                        updates[`/logs/${lIdx + 5}`] = { type: "alert", text: `💀 КРАХ: Компанія ${me.name} повністю збанкрутувала!` };
+                        let logL = App.State.roomData.logs ? App.State.roomData.logs.length : 0;
                         
-                        // Звільняємо активи
-                        App.Config.mapData.forEach(c => {
-                            if(App.State.roomData.cells[c.id].owner === App.State.myId) {
-                                updates[`/cells/${c.id}/owner`] = "";
-                                updates[`/cells/${c.id}/lvl`] = 0;
+                        updates[`/logs/${logL + 4}`] = { 
+                            type: "alert", 
+                            text: `💀 ЛІКВІДАЦІЯ: Корпорація ${me.name} оголосила про повне дефолтне банкрутство! Всі активи анульовано.` 
+                        };
+
+                        // Повне очищення власності збанкрутілого гравця
+                        App.Config.mapData.forEach(tile => {
+                            if(App.State.roomData.cells[tile.id].owner === App.State.myId) {
+                                updates[`/cells/${tile.id}/owner`] = "";
+                                updates[`/cells/${tile.id}/lvl`] = 0;
                             }
                         });
-                        
-                        let filteredOrder = App.State.roomData.order.filter(id => id !== App.State.myId);
-                        updates[`/order`] = filteredOrder;
+
+                        let updatedOrder = App.State.roomData.order.filter(id => id !== App.State.myId);
+                        updates[`/order`] = updatedOrder;
                         updates[`/players/${App.State.myId}`] = null;
+                        
+                        alert("Капітуляція! Ваша корпорація збанкрутувала. Гру завершено.");
                     }
                 }
             },
 
             UI: {
-                hasGridRendered: false,
+                // Побудова сітки 32 клітин у DOM
+                buildLayoutMatrix: function() {
+                    let container = document.getElementById('board-grid-dom-target');
+                    let coreHTML = container.querySelector('.board-center-core').outerHTML;
+                    container.innerHTML = coreHTML;
 
-                getDiceChar: function(num) {
-                    return { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" }[num] || "⚀";
-                },
+                    App.Config.mapData.forEach(tile => {
+                        let node = document.createElement('div');
+                        node.className = `cell-unit pos-${tile.id}`;
 
-                renderBoardLayout: function() {
-                    let grid = document.getElementById('board-grid-dom');
-                    let centerHTML = grid.querySelector('.board-center').outerHTML;
-                    grid.innerHTML = centerHTML;
+                        if(tile.id <= 8) node.classList.add('border-top-side');
+                        else if(tile.id <= 16) node.classList.add('border-right-side');
+                        else if(tile.id <= 24) node.classList.add('border-bottom-side');
+                        else node.classList.add('border-left-side');
 
-                    App.Config.mapData.forEach(cell => {
-                        let block = document.createElement('div');
-                        block.className = `cell pos-${cell.id}`;
-                        
-                        if(cell.id <= 8) block.classList.add('row-top');
-                        else if(cell.id <= 16) block.classList.add('col-right');
-                        else if(cell.id <= 24) block.classList.add('row-bottom');
-                        else block.classList.add('col-left');
+                        let stripe = App.Config.groupColors[tile.group] || "transparent";
 
-                        let barColor = App.Config.groupColors[cell.group] || "transparent";
-
-                        block.innerHTML = `
-                            <div class="cell-stripe" style="background:${barColor}"></div>
-                            <div class="cell-infrastructure" id="infra-layer-${cell.id}"></div>
-                            <div class="cell-title">${cell.name}</div>
-                            <div class="cell-icon">${cell.icon || '🏢'}</div>
-                            <div class="cell-owner-tag" id="owner-tag-${cell.id}"></div>
-                            <div class="cell-price">${cell.price ? '$' + cell.price : ''}</div>
-                            <div class="token-housing" id="tokens-layer-${cell.id}"></div>
+                        node.innerHTML = `
+                            <div class="cell-stripe-indicator" style="background:${stripe}"></div>
+                            <div class="cell-level-container" id="lvl-box-${tile.id}"></div>
+                            <div class="cell-meta-title">${tile.name}</div>
+                            <div class="cell-center-graphic">${tile.icon || '💼'}</div>
+                            <div class="cell-owner-label" id="owner-box-${tile.id}"></div>
+                            <div class="cell-price-tag">${tile.price ? '$' + tile.price : (tile.cost ? '$' + tile.cost : '')}</div>
+                            <div class="cell-tokens-tray" id="tray-box-${tile.id}"></div>
                         `;
-                        grid.appendChild(block);
+                        container.appendChild(node);
                     });
-                    App.UI.hasGridRendered = true;
+                    App.State.gridRendered = true;
                 },
 
-                sync: function() {
-                    if(!App.UI.hasGridRendered) App.UI.renderBoardLayout();
+                getDiceSymbol: function(n) {
+                    return { 1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅" }[n] || "⚀";
+                },
+
+                // Головний двигун рендерингу та синхронізації
+                syncRealtimeData: function() {
+                    if(!App.State.gridRendered) App.UI.buildLayoutMatrix();
 
                     let r = App.State.roomData;
                     let activeId = r.order[r.turnIndex];
-                    let activePlayer = r.players[activeId];
+                    let activeCorp = r.players[activeId];
 
-                    // Синхронізація об'єктів та філій
-                    App.Config.mapData.forEach(c => {
-                        let sCell = r.cells[c.id];
-                        let tokenBox = document.getElementById(`tokens-layer-${c.id}`);
-                        if(tokenBox) tokenBox.innerHTML = "";
+                    // Очищення та заповнення власників і філій
+                    App.Config.mapData.forEach(tile => {
+                        let serverTile = r.cells[tile.id];
+                        let tray = document.getElementById(`tray-box-${tile.id}`);
+                        if(tray) tray.innerHTML = "";
 
-                        let ownerTag = document.getElementById(`owner-tag-${c.id}`);
-                        let infraBox = document.getElementById(`infra-layer-${c.id}`);
+                        let label = document.getElementById(`owner-box-${tile.id}`);
+                        let lvlContainer = document.getElementById(`lvl-box-${tile.id}`);
 
-                        if(sCell && sCell.owner) {
-                            let ownerInfo = r.players[sCell.owner];
-                            if(ownerTag && ownerInfo) {
-                                ownerTag.innerText = ownerInfo.name.substring(0, 4);
-                                ownerTag.style.background = ownerInfo.color;
-                                ownerTag.style.color = "#000";
+                        if(serverTile && serverTile.owner) {
+                            let ownerMeta = r.players[serverTile.owner];
+                            if(label && ownerMeta) {
+                                label.innerText = ownerMeta.name.substring(0, 5) + '.';
+                                label.style.background = ownerMeta.color;
+                                label.style.color = "#000";
                             }
-                            if(infraBox && c.type === 'property') {
-                                infraBox.innerHTML = "";
-                                if(sCell.lvl === 6) {
-                                    infraBox.innerHTML = `<div class="hotel-node"></div>`;
+                            if(lvlContainer && tile.type === 'property') {
+                                lvlContainer.innerHTML = "";
+                                if(serverTile.lvl === 6) {
+                                    lvlContainer.innerHTML = `<div class="infrastructure-hotel"></div>`;
                                 } else {
-                                    for(let i = 1; i < sCell.lvl; i++) {
-                                        infraBox.innerHTML += `<div class="house-node"></div>`;
+                                    for(let i = 1; i < serverTile.lvl; i++) {
+                                        lvlContainer.innerHTML += `<div class="infrastructure-house"></div>`;
                                     }
                                 }
                             }
                         } else {
-                            if(ownerTag) ownerTag.innerText = "";
-                            if(infraBox) infraBox.innerHTML = "";
+                            if(label) label.innerText = "";
+                            if(lvlContainer) lvlContainer.innerHTML = "";
                         }
                     });
 
-                    // Рендеринг фішок
+                    // Рендеринг фішок лідерів ринку
                     Object.values(r.players).forEach(p => {
                         if(!p) return;
-                        let token = document.createElement('div');
-                        token.className = "map-token";
-                        token.style.background = p.color;
-                        let layer = document.getElementById(`tokens-layer-${p.pos}`);
-                        if(layer) layer.appendChild(token);
+                        let pawn = document.createElement('div');
+                        pawn.className = "player-pawn";
+                        pawn.style.background = p.color;
+                        let currentTray = document.getElementById(`tray-box-${p.pos}`);
+                        if(currentTray) currentTray.appendChild(pawn);
                     });
 
-                    // Оновлення таблиці лідерів
-                    let lb = document.getElementById('leaderboard-dom-target');
-                    lb.innerHTML = "";
-                    r.order.forEach(pid => {
-                        let p = r.players[pid];
+                    // Оновлення лідерборду фінансів
+                    let leaderboardContainer = document.getElementById('leaderboard-in-game-target');
+                    leaderboardContainer.innerHTML = "";
+                    r.order.forEach(id => {
+                        let p = r.players[id];
                         if(!p) return;
-                        lb.innerHTML += `
-                            <div class="player-row ${activeId === p.id ? 'active-border' : ''}">
-                                <div><strong style="color:${p.color}">${p.name} ${p.id === App.State.myId ? '(Ви)' : ''}</strong><br><small style="color:var(--text-gray);">${p.role === 'shark' ? 'АКУЛА':'МАГНАТ'}</small></div>
-                                <div class="player-assets-cash">$${p.cash}</div>
+                        leaderboardContainer.innerHTML += `
+                            <div class="leaderboard-row ${activeId === p.id ? 'current-active-player' : ''}">
+                                <div class="corp-identity-box">
+                                    <strong style="color:${p.color}">${p.name} ${p.id === App.State.myId ? '(Ви)' : ''}</strong>
+                                    <div>Стратегія: ${p.role}</div>
+                                </div>
+                                <div class="corp-financial-balance">$${p.cash}</div>
                             </div>
                         `;
                     });
 
-                    // Стан кубиків з сервера
+                    // Синхронізація результатів кубиків
                     if(r.lastRoll && !App.State.localRolling) {
-                        document.getElementById('cube-ui-1').innerText = App.UI.getDiceChar(r.lastRoll.d1);
-                        document.getElementById('cube-ui-2').innerText = App.UI.getDiceChar(r.lastRoll.d2);
+                        document.getElementById('cube-node-1').innerText = App.UI.getDiceSymbol(r.lastRoll.d1);
+                        document.getElementById('cube-node-2').innerText = App.UI.getDiceSymbol(r.lastRoll.d2);
                     }
 
-                    // Налаштування інтерфейсу дій
-                    document.getElementById('turn-descriptor').innerText = `Зараз діє: ${activePlayer ? activePlayer.name : '---'}`;
+                    // Контроль прав ходу
+                    document.getElementById('turn-global-indicator').innerText = `Ринковий хід: ${activeCorp ? activeCorp.name : 'Визначення...'}`;
                     
-                    let actPanel = document.getElementById('action-panel-wks');
-                    let actBtn = document.getElementById('hub-action-main');
-                    let passBtn = document.getElementById('hub-action-pass');
-                    let trigger = document.getElementById('dice-clickable-trigger');
+                    let panel = document.getElementById('action-workspace-card');
+                    let primaryBtn = document.getElementById('btn-hub-primary-action');
+                    let passBtn = document.getElementById('btn-hub-secondary-pass');
+                    let clickableArea = document.getElementById('dice-clickable-area');
 
-                    actPanel.style.display = 'none';
-                    trigger.style.pointerEvents = 'none';
-                    document.getElementById('platform-callout-text').innerText = "Очікування ходу";
-                    document.getElementById('platform-callout-text').style.color = 'var(--text-gray)';
+                    panel.style.display = 'none';
+                    clickableArea.style.pointerEvents = 'none';
+                    document.getElementById('dice-status-subtext').innerText = "ОЧІКУВАННЯ ХОДУ ОПОНЕНТА";
+                    document.getElementById('dice-status-subtext').style.color = 'var(--text-muted)';
 
                     if(activeId === App.State.myId) {
                         if(r.pendingAction) {
-                            actPanel.style.display = 'block';
+                            panel.style.display = 'block';
                             passBtn.style.display = 'none';
                             
-                            let tile = App.Config.mapData[r.pendingAction.tileId];
+                            let targetTile = App.Config.mapData[r.pendingAction.tileId];
+                            
                             if(r.pendingAction.type === 'buy') {
-                                actBtn.innerText = `Купити ${tile.name} ($${tile.price})`;
-                                actBtn.onclick = () => App.Gameplay.handleAction();
+                                primaryBtn.innerText = `Придбати ${targetTile.name} ($${targetTile.price})`;
+                                primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             } else if(r.pendingAction.type === 'rent') {
-                                let rent = App.Gameplay.calcRent(tile, r.cells[tile.id], r);
-                                actBtn.innerText = `Сплатити оренду ($${rent})`;
-                                actBtn.onclick = () => App.Gameplay.handleAction();
+                                let rentCost = App.Gameplay.calculateRentFormula(targetTile, r.cells[targetTile.id], r);
+                                primaryBtn.innerText = `Сплатити роялті ($${rentCost})`;
+                                primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             } else if(r.pendingAction.type === 'tax') {
-                                actBtn.innerText = `Сплатити збір ($${tile.cost})`;
-                                actBtn.onclick = () => App.Gameplay.handleAction();
+                                primaryBtn.innerText = `Сплатити мито ($${targetTile.cost})`;
+                                primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             } else if(r.pendingAction.type === 'event') {
-                                actBtn.innerText = `Відкрити картку подій`;
-                                actBtn.onclick = () => App.Gameplay.handleAction();
+                                primaryBtn.innerText = `Відкрити інвест-картку`;
+                                primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             }
                         } else {
-                            // Перевірка можливості побудови філії перед ходом на своїй клітині
-                            let curTile = App.Config.mapData[activePlayer.pos];
-                            let curServerTile = r.cells[activePlayer.pos];
-                            
-                            if(curServerTile && curServerTile.owner === App.State.myId && curTile.type === 'property' && curServerTile.lvl < 6) {
-                                actPanel.style.display = 'block';
+                            // Перевірка можливості будівництва філії на своїй поточної клітині
+                            let myCurrentTile = App.Config.mapData[activeCorp.pos];
+                            let myServerTile = r.cells[activeCorp.pos];
+
+                            if(myServerTile && myServerTile.owner === App.State.myId && myCurrentTile.type === 'property' && myServerTile.lvl < 6) {
+                                panel.style.display = 'block';
                                 passBtn.style.display = 'block';
-                                let cost = Math.round(curTile.price * 0.6);
-                                if(activePlayer.role === 'tycoon') cost = Math.round(cost * 0.7);
-                                
-                                actBtn.innerText = `Апгрейд філії ($${cost})`;
-                                r.pendingAction = { type: 'build', tileId: curTile.id };
-                                actBtn.onclick = () => App.Gameplay.handleAction();
+                                let upgradeCost = Math.round(myCurrentTile.price * 0.6);
+                                if(activeCorp.role === 'tycoon') upgradeCost = Math.round(upgradeCost * 0.7);
+
+                                primaryBtn.innerText = `Збудувати філію ($${upgradeCost})`;
+                                r.pendingAction = { type: 'build', tileId: myCurrentTile.id };
+                                primaryBtn.onclick = () => App.Gameplay.executeBusinessAction();
                             }
 
-                            trigger.style.pointerEvents = 'auto';
-                            document.getElementById('platform-callout-text').innerText = "👉 Тисни, щоб кинути кубики";
-                            document.getElementById('platform-callout-text').style.color = activePlayer.color;
+                            clickableArea.style.pointerEvents = 'auto';
+                            document.getElementById('dice-status-subtext').innerText = "👉 ВАШ ХІД! НАТИСНІТЬ ДЛЯ КИДКА";
+                            document.getElementById('dice-status-subtext').style.color = activeCorp.color;
                         }
                     }
 
-                    // Логи
-                    let logMonitor = document.getElementById('terminal-dom-target');
+                    // Оновлення логів транзакцій
+                    let logsContainer = document.getElementById('terminal-log-target');
                     if(r.logs) {
-                        logMonitor.innerHTML = r.logs.map(l => `<div class="log-node ${l.type}">${l.text}</div>`).reverse().join('');
+                        logsContainer.innerHTML = r.logs.map(l => `<div class="log-line ${l.type}">${l.text}</div>`).reverse().join('');
                     }
                 }
             }
+            
         };
-
-        // Інтеграція з Telegram Web App
-        if(window.Telegram && window.Telegram.WebApp) {
-            const tg = window.Telegram.WebApp;
-            tg.expand();
-            if(tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                let uname = tg.initDataUnsafe.user.first_name || tg.initDataUnsafe.user.username;
-                document.getElementById('player-nickname').value = uname;
-                document.getElementById('tg-identity').innerText = `Акаунт: @${tg.initDataUnsafe.user.username || 'user'}`;
-            }
-        }
     </script>
 </body>
 </html>
