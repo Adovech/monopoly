@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Monopoly Ultra Realtime Edition - PVP</title>
+    <title>Монополія Про - PVP</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -56,6 +56,7 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));
@@ -460,30 +461,30 @@
 <body>
 
     <header>
-        <h1>Monopoly Pro Realtime</h1>
-        <p>Pure PVP Hotseat Engine • English UI</p>
+        <h1>Монополія Про</h1>
+        <p>Локальна PVP Гра • На одному екрані</p>
     </header>
 
-    <!-- CUSTOM PLAYERS CONFIG LOBBY -->
+    <!-- НАЛАШТУВАННЯ ЛОБІ -->
     <div id="auth-screen">
-        <div class="auth-title">Setup Game Lobby (PVP)</div>
+        <div class="auth-title">Налаштування гри (PVP)</div>
         <div class="input-group" style="margin-bottom: 20px;">
-            <label>Number of Competitors</label>
+            <label>Кількість гравців</label>
             <select id="player-count-select" onchange="Engine.Lobby.adjustFields(this.value)">
-                <option value="2">2 Players</option>
-                <option value="3">3 Players</option>
-                <option value="4">4 Players</option>
+                <option value="2">2 Гравці</option>
+                <option value="3">3 Гравці</option>
+                <option value="4">4 Гравці</option>
             </select>
         </div>
 
         <div id="players-input-container">
-            <!-- Dynamic fields go here -->
+            <!-- Поля створюються динамічно -->
         </div>
 
-        <button class="btn-launch" onclick="Engine.Core.bootstrap()">Deploy PVP Match</button>
+        <button class="btn-launch" onclick="Engine.Core.bootstrap()">Запустити матч</button>
     </div>
 
-    <!-- MAIN MATRIX INTERFACE -->
+    <!-- ІГРОВЕ ПОЛЕ -->
     <div id="game-screen">
         <div class="main-container">
             
@@ -491,42 +492,42 @@
                 <div class="board-grid" id="board-grid-dom">
                     
                     <div class="board-center">
-                        <div class="double-indicator" id="double-badge">Double Roll Asset Granted</div>
+                        <div class="double-indicator" id="double-badge">Бонус за дубль активовано</div>
                         
                         <div class="central-dice-platform" id="dice-interactive-trigger" onclick="Engine.Gameplay.rollDice()">
                             <div class="dice-row">
                                 <div class="dice-cube" id="cube-ui-1">⚀</div>
                                 <div class="dice-cube" id="cube-ui-2">⚀</div>
                             </div>
-                            <div class="platform-callout" id="platform-callout-text">👉 Click to Roll</div>
+                            <div class="platform-callout" id="platform-callout-text">👉 Натисніть, щоб кинути</div>
                         </div>
 
-                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">System Synced</div>
+                        <div id="turn-descriptor" style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--text-gray); margin-top: 15px;">Система готова</div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- WORKSTATION SIDEBAR -->
+            <!-- БІЧНА ПАНЕЛЬ КЕРУВАННЯ -->
             <div class="side-panel">
                 
                 <div class="card-panel" id="action-panel-wks" style="display: none; border-color: var(--accent-cyan);">
-                    <h3>⚡ Operational Hub</h3>
+                    <h3>⚡ Доступні дії</h3>
                     <div class="action-hub-box">
-                        <button class="panel-btn btn-buy" id="hub-action-buy">Acquire Asset</button>
-                        <button class="panel-btn btn-build" id="hub-action-build">Construct Branch</button>
-                        <button class="panel-btn btn-jail" id="hub-action-jail">Settle Bail Out ($50)</button>
-                        <button class="panel-btn btn-pass" id="hub-action-pass" onclick="Engine.Gameplay.closeTurn()">Acknowledge & Continue</button>
+                        <button class="panel-btn btn-buy" id="hub-action-buy">Придбати актив</button>
+                        <button class="panel-btn btn-build" id="hub-action-build">Побудувати філію</button>
+                        <button class="panel-btn btn-jail" id="hub-action-jail">Сплатити заставу ($50)</button>
+                        <button class="panel-btn btn-pass" id="hub-action-pass" onclick="Engine.Gameplay.closeTurn()">Завершити хід</button>
                     </div>
                 </div>
 
                 <div class="card-panel">
-                    <h3>📊 Boardroom Capitalization</h3>
+                    <h3>📊 Рахунки компаній</h3>
                     <div id="leaderboard-dom-target"></div>
                 </div>
 
                 <div class="card-panel">
-                    <h3>📜 Data Transmission Logs</h3>
+                    <h3>📜 Журнал подій гри</h3>
                     <div class="terminal-log" id="terminal-dom-target"></div>
                 </div>
 
@@ -544,38 +545,38 @@
                 jailBailoutCost: 50,
                 tokenColors: ["var(--accent-cyan)", "var(--accent-red)", "var(--accent-purple)", "var(--accent-orange)"],
                 mapData: [
-                    { id: 0, name: "GO (Start)", type: "start", icon: "🚀", edge: "top" },
-                    { id: 1, name: "ATB Market", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], lvl: 0, owner: null, group: "brown", edge: "top" },
-                    { id: 2, name: "Community Chest", type: "chest", icon: "📦", edge: "top" },
-                    { id: 3, name: "Aurora Multi", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], lvl: 0, owner: null, group: "brown", edge: "top" },
-                    { id: 4, name: "Income Tax", type: "tax", cost: 200, icon: "🏛️", edge: "top" },
-                    { id: 5, name: "Kyiv Railway", type: "railroad", price: 200, owner: null, group: "rail", edge: "top" },
-                    { id: 6, name: "OKKO Petrol", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], lvl: 0, owner: null, group: "lightblue", edge: "top" },
-                    { id: 7, name: "Chance Alpha", type: "chance", icon: "⚡", edge: "top" },
-                    { id: 8, name: "WOG Station", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], lvl: 0, owner: null, group: "lightblue", edge: "top" },
-                    { id: 9, name: "Incarceration (Jail)", type: "jail", icon: "🚔", edge: "right" },
-                    { id: 10, name: "Rozetka Hld", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], lvl: 0, owner: null, group: "pink", edge: "right" },
-                    { id: 11, name: "DTEK Energy", type: "utility", price: 150, owner: null, group: "util", edge: "right" },
-                    { id: 12, name: "Comfy Electronics", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], lvl: 0, owner: null, group: "pink", edge: "right" },
-                    { id: 13, name: "Lviv Railway", type: "railroad", price: 200, owner: null, group: "rail", edge: "right" },
-                    { id: 14, name: "Nova Poshta", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], lvl: 0, owner: null, group: "orange", edge: "right" },
-                    { id: 15, name: "Community Chest", type: "chest", icon: "📦", edge: "right" },
-                    { id: 16, name: "Ukrposhta Enterprise", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], lvl: 0, owner: null, group: "orange", edge: "right" },
-                    { id: 17, name: "Free Parking", type: "parking", icon: "🅿️", edge: "bottom" },
-                    { id: 18, name: "Silpo Retail", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], lvl: 0, owner: null, group: "red", edge: "bottom" },
-                    { id: 19, name: "Chance Beta", type: "chance", icon: "⚡", edge: "bottom" },
-                    { id: 20, name: "Nashariaba Agro", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], lvl: 0, owner: null, group: "red", edge: "bottom" },
-                    { id: 21, name: "Odesa Port Rail", type: "railroad", price: 200, owner: null, group: "rail", edge: "bottom" },
-                    { id: 22, name: "Lviv Croissants", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
-                    { id: 23, name: "Morfshynska Water", type: "utility", price: 150, owner: null, group: "util", edge: "bottom" },
-                    { id: 24, name: "Monobank UA", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
-                    { id: 25, name: "Go To Jail Structure", type: "gotojail", icon: "👮", edge: "left" },
-                    { id: 26, name: "SoftServe Corp", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], lvl: 0, owner: null, group: "green", edge: "left" },
+                    { id: 0, name: "СТАРТ", type: "start", icon: "🚀", edge: "top" },
+                    { id: 1, name: "АТБ-Маркет", type: "property", price: 60, rent: [2, 10, 30, 90, 160, 250], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 2, name: "Скриня громади", type: "chest", icon: "📦", edge: "top" },
+                    { id: 3, name: "Аврора Мультимаркет", type: "property", price: 60, rent: [4, 20, 60, 180, 320, 450], lvl: 0, owner: null, group: "brown", edge: "top" },
+                    { id: 4, name: "Податок на дохід", type: "tax", cost: 200, icon: "🏛️", edge: "top" },
+                    { id: 5, name: "Київська залізниця", type: "railroad", price: 200, owner: null, group: "rail", edge: "top" },
+                    { id: 6, name: "АЗК OKKO", type: "property", price: 100, rent: [6, 30, 90, 270, 400, 550], lvl: 0, owner: null, group: "lightblue", edge: "top" },
+                    { id: 7, name: "Шанс Альфа", type: "chance", icon: "⚡", edge: "top" },
+                    { id: 8, name: "АЗК WOG", type: "property", price: 120, rent: [8, 40, 100, 300, 450, 600], lvl: 0, owner: null, group: "lightblue", edge: "top" },
+                    { id: 9, name: "СІЗО / Тюрма", type: "jail", icon: "🚔", edge: "right" },
+                    { id: 10, name: "Rozetka", type: "property", price: 140, rent: [10, 50, 150, 450, 625, 750], lvl: 0, owner: null, group: "pink", edge: "right" },
+                    { id: 11, name: "ДТЕК Енерго", type: "utility", price: 150, owner: null, group: "util", edge: "right" },
+                    { id: 12, name: "Comfy", type: "property", price: 160, rent: [12, 60, 180, 500, 700, 900], lvl: 0, owner: null, group: "pink", edge: "right" },
+                    { id: 13, name: "Львівська залізниця", type: "railroad", price: 200, owner: null, group: "rail", edge: "right" },
+                    { id: 14, name: "Нова Пошта", type: "property", price: 180, rent: [14, 70, 200, 550, 750, 950], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 15, name: "Скриня громади", type: "chest", icon: "📦", edge: "right" },
+                    { id: 16, name: "Укрпошта", type: "property", price: 200, rent: [16, 80, 220, 600, 800, 1000], lvl: 0, owner: null, group: "orange", edge: "right" },
+                    { id: 17, name: "Безкоштовна парковка", type: "parking", icon: "🅿️", edge: "bottom" },
+                    { id: 18, name: "Сільпо", type: "property", price: 220, rent: [18, 90, 250, 700, 875, 1050], lvl: 0, owner: null, group: "red", edge: "bottom" },
+                    { id: 19, name: "Шанс Бета", type: "chance", icon: "⚡", edge: "bottom" },
+                    { id: 20, name: "Наша Ряба", type: "property", price: 240, rent: [20, 100, 300, 750, 925, 1100], lvl: 0, owner: null, group: "red", edge: "bottom" },
+                    { id: 21, name: "Одеський Порт (Залізниця)", type: "railroad", price: 200, owner: null, group: "rail", edge: "bottom" },
+                    { id: 22, name: "Львівські Круасани", type: "property", price: 260, rent: [22, 110, 330, 800, 975, 1150], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
+                    { id: 23, name: "Моршинська", type: "utility", price: 150, owner: null, group: "util", edge: "bottom" },
+                    { id: 24, name: "Monobank", type: "property", price: 280, rent: [24, 120, 360, 850, 1025, 1200], lvl: 0, owner: null, group: "yellow", edge: "bottom" },
+                    { id: 25, name: "Відправка в тюрму", type: "gotojail", icon: "👮", edge: "left" },
+                    { id: 26, name: "SoftServe", type: "property", price: 300, rent: [26, 130, 390, 900, 1100, 1275], lvl: 0, owner: null, group: "green", edge: "left" },
                     { id: 27, name: "EPAM Systems", type: "property", price: 320, rent: [28, 150, 450, 1000, 1200, 1400], lvl: 0, owner: null, group: "green", edge: "left" },
-                    { id: 28, name: "Community Chest", type: "chest", icon: "📦", edge: "left" },
-                    { id: 29, name: "Dnipro Logistics Rail", type: "railroad", price: 200, owner: null, group: "rail", edge: "left" },
-                    { id: 30, name: "Kyivstar Telecom", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], lvl: 0, owner: null, group: "darkblue", edge: "left" },
-                    { id: 31, name: "PrivatBank State", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], lvl: 0, owner: null, group: "darkblue", edge: "left" }
+                    { id: 28, name: "Скриня громади", type: "chest", icon: "📦", edge: "left" },
+                    { id: 29, "name": "Дніпровська логістика", type: "railroad", price: 200, owner: null, group: "rail", edge: "left" },
+                    { id: 30, name: "Київстар", type: "property", price: 350, rent: [35, 175, 500, 1100, 1300, 1500], lvl: 0, owner: null, group: "darkblue", edge: "left" },
+                    { id: 31, name: "ПриватБанк", type: "property", price: 400, rent: [50, 200, 600, 1400, 1700, 2000], lvl: 0, owner: null, group: "darkblue", edge: "left" }
                 ],
                 groupColors: {
                     brown: "#78350f", lightblue: "#0ea5e9", pink: "#ec4899", orange: "#f97316",
@@ -583,11 +584,11 @@
                     rail: "#4b5563", util: "#84cc16"
                 },
                 chanceCards: [
-                    { txt: "Advance to GO. Collect Dividends.", type: "move", target: 0 },
-                    { txt: "Speeding Ticket Infraction. Pay fine $50.", type: "fine", cash: 50 },
-                    { txt: "Corporate Infiltration. Go directly to Jail.", type: "jail" },
-                    { txt: "Tax Rebate Audit Prosperous. Collect $150.", type: "gift", cash: 150 },
-                    { txt: "System Modernization Costs. Pay $50 per upgraded branch.", type: "repair", houseCost: 50 }
+                    { txt: "Рухайтеся до поля СТАРТ. Отримайте виплату.", type: "move", target: 0 },
+                    { txt: "Штраф за перевищення швидкості. Сплатіть $50.", type: "fine", cash: 50 },
+                    { txt: "Порушення у звітності. Ви відправлені в тюрму.", type: "jail" },
+                    { txt: "Податкове повернення. Отримайте $150.", type: "gift", cash: 150 },
+                    { txt: "Витрати на модернізацію. Сплатіть по $50 за кожну філію.", type: "repair", houseCost: 50 }
                 ]
             },
 
@@ -610,14 +611,14 @@
                         container.innerHTML += `
                             <div class="lobby-row">
                                 <div class="input-group">
-                                    <label>Player ${i} Corporation</label>
-                                    <input type="text" id="p-name-${i}" value="Corp ${String.fromCharCode(64 + i)}">
+                                    <label>Корпорація Гравця ${i}</label>
+                                    <input type="text" id="p-name-${i}" value="Компанія ${String.fromCharCode(64 + i)}">
                                 </div>
                                 <div class="input-group">
-                                    <label>Archetype</label>
+                                    <label>Стратегія (Клас)</label>
                                     <select id="p-role-${i}">
-                                        <option value="shark">🦈 Shark (+$450 Lap)</option>
-                                        <option value="tycoon">💼 Tycoon (-30% Upgrade)</option>
+                                        <option value="shark">🦈 Акула (+$450 за коло)</option>
+                                        <option value="tycoon">💼 Магнат (-30% на апгрейд)</option>
                                     </select>
                                 </div>
                             </div>
@@ -634,7 +635,7 @@
 
                     for(let i = 1; i <= count; i++) {
                         let id = `p${i}`;
-                        let name = document.getElementById(`p-name-${i}`).value || `Corp ${i}`;
+                        let name = document.getElementById(`p-name-${i}`).value || `Компанія ${i}`;
                         let role = document.getElementById(`p-role-${i}`).value;
 
                         Engine.State.players[id] = {
@@ -650,7 +651,7 @@
                     }
 
                     Engine.State.turnIndex = 0;
-                    Engine.State.logs.push({ type: "sys", text: "🎴 Boardroom locked. Live PVP Battle launched." });
+                    Engine.State.logs.push({ type: "sys", text: "🎴 Гра почалася. Матч активовано." });
 
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('game-screen').style.display = 'block';
@@ -671,7 +672,7 @@
 
                     let p = Engine.Gameplay.getCurrentPlayer();
                     Engine.State.isRolling = true;
-                    document.getElementById('platform-callout-text').innerText = "🎰 CYCLING...";
+                    document.getElementById('platform-callout-text').innerText = "🎰 КУБИКИ КРУТЯТЬСЯ...";
 
                     let d1 = Math.floor(Math.random() * 6) + 1;
                     let d2 = Math.floor(Math.random() * 6) + 1;
@@ -696,16 +697,16 @@
                             if(p.inJail > 0) {
                                 if(isDouble) {
                                     p.inJail = 0;
-                                    Engine.State.logs.push({ type: "good", text: `🔓 ${p.name} rolled Double [${d1}:${d2}] and broke out of Jail!` });
+                                    Engine.State.logs.push({ type: "good", text: `🔓 ${p.name} викидає дубль [${d1}:${d2}] та виходить на свободу!` });
                                     Engine.State.consecutiveDoubles = 0;
                                 } else {
                                     p.inJail--;
                                     if(p.inJail === 0) {
                                         p.cash -= Engine.Config.jailBailoutCost;
-                                        Engine.State.logs.push({ type: "warn", text: `🚨 Mandatory $50 Bail processed for ${p.name} (Term completed).` });
+                                        Engine.State.logs.push({ type: "warn", text: `🚨 Термін ув'язнення завершено. Сплачено автоматичну заставу $50 для ${p.name}.` });
                                         Engine.Gameplay.verifySolvency(p.id);
                                     } else {
-                                        Engine.State.logs.push({ type: "alert", text: `🚔 No Double. ${p.name} stays in Jail (${p.inJail} turns remaining).` });
+                                        Engine.State.logs.push({ type: "alert", text: `🚔 Дубля немає. ${p.name} залишається в тюрмі (залишилось ходів: ${p.inJail}).` });
                                         Engine.Gameplay.closeTurn(false);
                                         return;
                                     }
@@ -714,7 +715,7 @@
                                 if(isDouble) {
                                     Engine.State.consecutiveDoubles++;
                                     if(Engine.State.consecutiveDoubles === 3) {
-                                        Engine.State.logs.push({ type: "alert", text: `🚨 3 Doubles in a row! ${p.name} arrested for fraud.` });
+                                        Engine.State.logs.push({ type: "alert", text: `🚨 3 дублі поспіль! ${p.name} затримано за фінансові махінації.` });
                                         p.pos = 9;
                                         p.inJail = 3;
                                         Engine.State.consecutiveDoubles = 0;
@@ -729,12 +730,12 @@
 
                             let priorPos = p.pos;
                             p.pos = (p.pos + d1 + d2) % Engine.Config.totalCells;
-                            Engine.State.logs.push({ type: "sys", text: `🎲 ${p.name} moved to tile ${p.pos} via roll [${d1}:${d2}].` });
+                            Engine.State.logs.push({ type: "sys", text: `🎲 ${p.name} переходить на клітину ${p.pos} після кидка [${d1}:${d2}].` });
 
                             if(p.pos < priorPos) {
                                 let bonus = p.role === 'shark' ? 450 : Engine.Config.baseSalary;
                                 p.cash += bonus;
-                                Engine.State.logs.push({ type: "good", text: `💸 ${p.name} cleared lap! Injecting +$${bonus}.` });
+                                Engine.State.logs.push({ type: "good", text: `💸 ${p.name} пройшов повне коло! Отримано бонусом +$${bonus}.` });
                             }
 
                             Engine.Gameplay.evaluateTileState(p, isDouble);
@@ -758,15 +759,16 @@
 
                     Engine.State.hasPendingAction = true;
                     document.getElementById('dice-interactive-trigger').style.pointerEvents = 'none';
-                    document.getElementById('platform-callout-text').innerText = "⚠️ DECISION REQUIRED";
+                    document.getElementById('platform-callout-text').innerText = "⚠️ НЕОБХІДНА ДІЯ";
                     document.getElementById('platform-callout-text').style.color = 'var(--accent-red)';
 
                     if(p.inJail > 0) {
                         jBtn.style.display = 'block';
+                        jBtn.innerText = "Внести заставу ($50)";
                         jBtn.disabled = p.cash < Engine.Config.jailBailoutCost;
                         jBtn.onclick = () => {
                             p.cash -= Engine.Config.jailBailoutCost; p.inJail = 0;
-                            Engine.State.logs.push({ type: "good", text: `💸 ${p.name} settled bail out. Safe release.` });
+                            Engine.State.logs.push({ type: "good", text: `💸 ${p.name} сплатив заставу та вийшов на свободу.` });
                             jBtn.style.display = 'none';
                             Engine.UI.sync();
                         };
@@ -775,11 +777,11 @@
                     if(tile.type === "property" || tile.type === "railroad" || tile.type === "utility") {
                         if(!tile.owner) {
                             bBtn.style.display = 'block';
-                            bBtn.innerText = `Buy ${tile.name} ($${tile.price})`;
+                            bBtn.innerText = `Купити ${tile.name} ($${tile.price})`;
                             bBtn.disabled = p.cash < tile.price;
                             bBtn.onclick = () => {
                                 p.cash -= tile.price; tile.owner = p.id; if(tile.type === "property") tile.lvl = 1;
-                                Engine.State.logs.push({ type: "good", text: `💼 Asset acquired by ${p.name}: ${tile.name}` });
+                                Engine.State.logs.push({ type: "good", text: `💼 ${p.name} купує об'єкт: ${tile.name}` });
                                 Engine.Gameplay.closeTurn(isDouble);
                             };
                         } else if(tile.owner === p.id) {
@@ -788,11 +790,11 @@
                                 if(p.role === "tycoon") upgradeCost = Math.round(upgradeCost * 0.7);
                                 
                                 uBtn.style.display = 'block';
-                                uBtn.innerText = `Build Upgrade ($${upgradeCost})`;
+                                uBtn.innerText = `Побудувати філію ($${upgradeCost})`;
                                 uBtn.disabled = p.cash < upgradeCost;
                                 uBtn.onclick = () => {
                                     p.cash -= upgradeCost; tile.lvl++;
-                                    Engine.State.logs.push({ type: "good", text: `🏢 ${p.name} modernized ${tile.name} to Tier ${tile.lvl}.` });
+                                    Engine.State.logs.push({ type: "good", text: `🏢 ${p.name} модернізує ${tile.name} до рівня ${tile.lvl}.` });
                                     Engine.Gameplay.closeTurn(isDouble);
                                 };
                             }
@@ -801,31 +803,32 @@
                             let liability = Engine.Gameplay.calculateRentLiability(tile);
                             bBtn.style.display = 'block';
                             pBtn.style.display = 'none';
-                            bBtn.innerText = `Pay Rent to ${landlord.name} ($${liability})`;
+                            bBtn.innerText = `Сплатити оренду для ${landlord.name} ($${liability})`;
                             bBtn.onclick = () => {
                                 p.cash -= liability; landlord.cash += liability;
-                                Engine.State.logs.push({ type: "alert", text: `⚠️ ${p.name} paid $${liability} rent to ${landlord.name}.` });
+                                Engine.State.logs.push({ type: "alert", text: `⚠️ ${p.name} сплачує оренду $${liability} власнику ${landlord.name}.` });
                                 Engine.Gameplay.verifySolvency(p.id);
                                 Engine.Gameplay.closeTurn(isDouble);
                             };
                         }
                     } else if(tile.type === "tax") {
                         bBtn.style.display = 'block'; pBtn.style.display = 'none';
-                        bBtn.innerText = `Pay Tax Fine ($${tile.cost})`;
+                        bBtn.innerText = `Сплатити податок ($${tile.cost})`;
                         bBtn.onclick = () => {
                             p.cash -= tile.cost;
-                            Engine.State.logs.push({ type: "alert", text: `🏛️ Tax system debited $${tile.cost} from ${p.name}.` });
+                            Engine.State.logs.push({ type: "alert", text: `🏛️ З рахунку ${p.name} списано податки на суму $${tile.cost}.` });
                             Engine.Gameplay.verifySolvency(p.id);
                             Engine.Gameplay.closeTurn(isDouble);
                         };
                     } else if(tile.type === "gotojail") {
                         p.pos = 9; p.inJail = 3; Engine.State.consecutiveDoubles = 0;
-                        Engine.State.logs.push({ type: "alert", text: `🚔 ${p.name} sent directly to Jail.` });
+                        Engine.State.logs.push({ type: "alert", text: `🚔 ${p.name} порушує правила і відправляється в тюрму.` });
                         Engine.Gameplay.closeTurn(false);
                     } else if(tile.type === "chance" || tile.type === "chest") {
                         Engine.Gameplay.executeRandomEvent(p);
                     }
 
+                    pBtn.innerText = "Продовжити гру";
                     pBtn.onclick = () => { Engine.Gameplay.closeTurn(isDouble); };
                     Engine.UI.sync();
                 },
@@ -846,7 +849,7 @@
                 executeRandomEvent: function(p) {
                     let cards = Engine.Config.chanceCards;
                     let selected = cards[Math.floor(Math.random() * cards.length)];
-                    Engine.State.logs.push({ type: "warn", text: `📜 EFFECT [${p.name}]: "${selected.txt}"` });
+                    Engine.State.logs.push({ type: "warn", text: `📜 ПОДІЯ [${p.name}]: "${selected.txt}"` });
 
                     if(selected.type === "move") {
                         p.pos = selected.target;
@@ -866,8 +869,8 @@
                 verifySolvency: function(pid) {
                     let target = Engine.State.players[pid];
                     if(target.cash < 0) {
-                        Engine.State.logs.push({ type: "alert", text: `💀 CRITICAL DEBT: ${target.name} has gone Bankrupt!` });
-                        alert(`💀 BANKRUPTCY PROCEDURES. ${target.name} is eliminated.`);
+                        Engine.State.logs.push({ type: "alert", text: `💀 БАНКРУТСТВО: ${target.name} повністю збанкрутував!` });
+                        alert(`💀 Процедура ліквідації. Гравця ${target.name} дискваліфіковано.`);
                         
                         // Wipe Assets
                         Engine.Config.mapData.forEach(tile => {
@@ -877,7 +880,7 @@
                         Engine.State.order = Engine.State.order.filter(id => id !== pid);
                         if(Engine.State.order.length <= 1) {
                             let winner = Engine.State.players[Engine.State.order[0]];
-                            alert(`🏆 MATCH OVER. Winner: ${winner.name}!`);
+                            alert(`🏆 МАТЧ ЗАВЕРШЕНО. Переможець: ${winner.name}!`);
                             location.reload();
                         }
                     }
@@ -890,7 +893,7 @@
                     let p = Engine.Gameplay.getCurrentPlayer();
 
                     if(wasDouble && p.inJail === 0 && Engine.State.consecutiveDoubles > 0) {
-                        Engine.State.logs.push({ type: "sys", text: `🔄 Double active. ${p.name} gets a bonus execution window.` });
+                        Engine.State.logs.push({ type: "sys", text: `🔄 Бонус за дубль. ${p.name} отримує право на ще один кидок.` });
                     } else {
                         Engine.State.consecutiveDoubles = 0;
                         document.getElementById('double-badge').style.display = 'none';
@@ -964,7 +967,7 @@
                         }
                     });
 
-                    // Render Vector Player Markers
+                    // Відображення маркерів гравців
                     Object.values(Engine.State.players).forEach(p => {
                         let token = document.createElement('div');
                         token.className = "map-token";
@@ -973,39 +976,40 @@
                         if(spot) spot.appendChild(token);
                     });
 
-                    // Boardroom Synchronizer
+                    // Оновлення таблиці лідерів
                     let boardRoom = document.getElementById('leaderboard-dom-target');
                     boardRoom.innerHTML = "";
                     Engine.State.order.forEach(pid => {
                         let p = Engine.State.players[pid];
+                        let roleUkr = p.role === 'shark' ? 'АКУЛА' : 'МАГНАТ';
                         boardRoom.innerHTML += `
                             <div class="player-row ${curPlayer.id === p.id ? 'active-border' : ''}">
-                                <div><strong style="color:${p.color}">${p.name}</strong><br><small style="color:var(--text-gray);">${p.role.toUpperCase()}</small></div>
+                                <div><strong style="color:${p.color}">${p.name}</strong><br><small style="color:var(--text-gray);">${roleUkr}</small></div>
                                 <div class="player-assets-cash">$${p.cash}</div>
                             </div>
                         `;
                     });
 
-                    // Interactive State System Monitor
-                    document.getElementById('turn-descriptor').innerText = `${curPlayer.name}'s Execution Window`;
+                    // Текст поточного ходу
+                    document.getElementById('turn-descriptor').innerText = `Хід компанії: ${curPlayer.name}`;
                     
                     let targetClicker = document.getElementById('dice-interactive-trigger');
                     if(!Engine.State.hasPendingAction) {
                         targetClicker.style.pointerEvents = 'auto';
-                        document.getElementById('platform-callout-text').innerText = "👉 Click to Roll";
+                        document.getElementById('platform-callout-text').innerText = "👉 Натисніть, щоб кинути";
                         document.getElementById('platform-callout-text').style.color = curPlayer.color;
                     } else {
                         targetClicker.style.pointerEvents = 'none';
                     }
 
-                    // Flush Terminal Pipelines
+                    // Оновлення логів
                     let logMonitor = document.getElementById('terminal-dom-target');
                     logMonitor.innerHTML = Engine.State.logs.map(l => `<div class="log-node ${l.type}">${l.text}</div>`).reverse().join('');
                 }
             }
         };
 
-        // Auto-initialize Lobby on Load
+        // Запуск лобі при першому завантаженні сторінки
         window.onload = () => { Engine.Lobby.adjustFields(2); };
     </script>
 </body>
