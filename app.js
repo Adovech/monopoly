@@ -5,7 +5,7 @@ var App = {
         roomData: null,
         localRolling: false,
         gridRendered: false,
-        lastTurnIndex: -1 // Для відслідковування зміни ходу й анімації
+        lastTurnIndex: -1
     },
 
     Network: {
@@ -292,6 +292,34 @@ var App = {
                 var hostCorp = r.players[serverTile.owner];
                 var finalRent = App.Gameplay.calculateRentFormula(tile, serverTile, r);
 
+                // ПЕРЕВІРКА: якщо не вистачає грошей на оренду
+                if (me.cash < finalRent) {
+                    var totalAssetsValue = App.Gameplay.getAssetsTotalSellValue(App.State.myId);
+                    
+                    if (me.cash + totalAssetsValue >= finalRent) {
+                        // Якщо майна вистачає для покриття, змушуємо продавати через інтерфейс
+                        alert(`🚨 Недостатньо грошей для сплати оренди ($${finalRent})! У вас є $${me.cash}. Виберіть компанію для продажу в банк за 50% вартості.`);
+                        return;
+                    } else {
+                        // Повне банкрутство: продається все, залишок віддається власнику, гравець вибуває
+                        alert(`💀 Жорстке банкрутство! Навіть продаж усіх компаній не покриє оренду $${finalRent}. Ви вибуваєте з гри.`);
+                        
+                        var cashFromAllSales = totalAssetsValue;
+                        var finalCompensation = me.cash + cashFromAllSales;
+                        
+                        updates['/players/' + serverTile.owner + '/cash'] = hostCorp.cash + finalCompensation;
+                        updates['/logs/' + logLength] = { 
+                            type: "alert", 
+                            text: `💀 КРАХ: ${me.name} збанкрутував! Усі його фірми ліквідовані. Власник ${hostCorp.name} отримав останню компенсацію у розмірі $${finalCompensation}.` 
+                        };
+                        
+                        App.Gameplay.triggerAbsoluteLiquidation(App.State.myId, updates);
+                        db.ref('rooms/' + App.State.roomId).update(updates);
+                        return;
+                    }
+                }
+
+                // Звичайна сплата оренди, якщо грошей достатньо
                 updates['/players/' + App.State.myId + '/cash'] = me.cash - finalRent;
                 updates['/players/' + serverTile.owner + '/cash'] = hostCorp.cash + finalRent;
                 updates['/logs/' + logLength] = { 
@@ -299,12 +327,23 @@ var App = {
                     text: `⚠️ Оренда: ${me.name} виплачує $${finalRent} гравцю ${hostCorp.name}.` 
                 };
 
-                // Замість повного скидання переводимо хід у стан пропозиції викупу
                 updates['/pendingAction'] = { type: "buyout_proposal", tileId: act.tileId, actor: App.State.myId, price: Math.round(tile.price * 1.25) };
-
-                App.Gameplay.evaluateBankruptcyState(me.cash - finalRent, updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
+            else if(currentType === "sell_asset_emergency") {
+                var targetTileId = customValue;
+                var targetTile = GameConfig.mapData[targetTileId];
+                var refund = Math.round(targetTile.price * 0.5);
+
+                updates['/players/' + App.State.myId + '/cash'] = me.cash + refund;
+                updates['/cells/' + targetTileId + '/owner'] = "";
+                updates['/cells/' + targetTileId + '/lvl'] = 0;
+                updates['/logs/' + logLength] = { 
+                    type: "warn", 
+                    text: `⚖️ Екстрена ліквідація: ${me.name} продав банку фірму ${targetTile.name} за $${refund} для покриття боргів.` 
+                };
+                db.ref('rooms/' + App.State.roomId).update(updates);
+            }
             else if(currentType === "send_buyout") {
                 var offer = parseInt(customValue);
                 if(isNaN(offer) || offer <= 0) return alert("Введіть коректну суму!");
@@ -313,7 +352,7 @@ var App = {
                 updates['/pendingAction'] = {
                     type: "buyout_decision",
                     tileId: act.tileId,
-                    actor: act.actor, // Хто хоче купити (це я)
+                    actor: act.actor,
                     price: offer
                 };
                 updates['/logs/' + logLength] = { 
@@ -324,7 +363,7 @@ var App = {
             }
             else if(currentType === "accept_buyout") {
                 var buyer = r.players[act.actor];
-                var seller = r.players[serverTile.owner]; // Це я
+                var seller = r.players[serverTile.owner];
 
                 updates['/players/' + act.actor + '/cash'] = buyer.cash - act.price;
                 updates['/players/' + serverTile.owner + '/cash'] = seller.cash + act.price;
@@ -344,7 +383,6 @@ var App = {
                     type: "warn", 
                     text: `❌ ${me.name} відхилив пропозицію викупу фірми ${tile.name}.` 
                 };
-                // Повертаємо хід покупцю, щоб він міг підняти ціну або пасанути
                 updates['/pendingAction'] = { type: "buyout_proposal", tileId: act.tileId, actor: act.actor, price: Math.round(act.price * 1.15) };
                 db.ref('rooms/' + App.State.roomId).update(updates);
             }
@@ -355,11 +393,13 @@ var App = {
                 db.ref('rooms/' + App.State.roomId).update(updates);
             }
             else if(currentType === "tax") {
+                if (me.cash < tile.cost) {
+                    alert("Немає коштів на сплату податків! Продайте майно.");
+                    return;
+                }
                 updates['/players/' + App.State.myId + '/cash'] = me.cash - tile.cost;
                 updates['/logs/' + logLength] = { type: "alert", text: `🏛️ Податки: ${me.name} сплачує в бюджет $${tile.cost}.` };
                 updates['/pendingAction'] = null;
-
-                App.Gameplay.evaluateBankruptcyState(me.cash - tile.cost, updates);
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
@@ -368,16 +408,45 @@ var App = {
                 var calculatedCash = me.cash;
 
                 if(randomCard.type === "gift") calculatedCash += randomCard.sum;
-                if(randomCard.type === "fine") calculatedCash -= randomCard.sum;
+                if(randomCard.type === "fine") {
+                    if (me.cash < randomCard.sum) {
+                        alert(`Штраф за карткою подій складає $${randomCard.sum}. Продайте майно, щоб вийти в плюс!`);
+                        return;
+                    }
+                    calculatedCash -= randomCard.sum;
+                }
 
                 updates['/players/' + App.State.myId + '/cash'] = calculatedCash;
                 updates['/logs/' + logLength] = { type: "warn", text: `📜 ПОДІЯ: ${randomCard.text}` };
                 updates['/pendingAction'] = null;
-
-                if(randomCard.type === "fine") App.Gameplay.evaluateBankruptcyState(calculatedCash, updates);
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             }
+        },
+
+        getAssetsTotalSellValue: function(playerId) {
+            var sum = 0;
+            var r = App.State.roomData;
+            GameConfig.mapData.forEach(function(tile) {
+                if(r.cells[tile.id] && r.cells[tile.id].owner === playerId) {
+                    sum += Math.round(tile.price * 0.5);
+                }
+            });
+            return sum;
+        },
+
+        triggerAbsoluteLiquidation: function(playerId, updates) {
+            GameConfig.mapData.forEach(function(tile) {
+                if(App.State.roomData.cells[tile.id].owner === playerId) {
+                    updates['/cells/' + tile.id + '/owner'] = "";
+                    updates['/cells/' + tile.id + '/lvl'] = 0;
+                }
+            });
+            var updatedOrder = App.State.roomData.order.filter(function(id) { return id !== playerId; });
+            updates['/order'] = updatedOrder;
+            updates['/players/' + playerId] = null;
+            updates['/pendingAction'] = null;
+            App.Gameplay.nextTurn(updates);
         },
 
         confirmPass: function() {
@@ -394,6 +463,7 @@ var App = {
         },
 
         calculateRentFormula: function(tile, serverTile, r) {
+            if(!serverTile || !serverTile.owner) return 0;
             if(tile.type === "property") {
                 return tile.rent[serverTile.lvl] || tile.rent[0];
             }
@@ -405,31 +475,6 @@ var App = {
                 return cubesSum * (count === 3 ? 15 : 6);
             }
             return 0;
-        },
-
-        evaluateBankruptcyState: function(balance, updates) {
-            if(balance < 0) {
-                var me = App.State.roomData.players[App.State.myId];
-                var logL = App.State.roomData.logs ? App.State.roomData.logs.length : 0;
-                
-                updates['/logs/' + (logL + 4)] = { 
-                    type: "alert", 
-                    text: `💀 КРАХ: Корпорація ${me.name} оголосила банкрутство!` 
-                };
-
-                GameConfig.mapData.forEach(function(tile) {
-                    if(App.State.roomData.cells[tile.id].owner === App.State.myId) {
-                        updates['/cells/' + tile.id + '/owner'] = "";
-                        updates['/cells/' + tile.id + '/lvl'] = 0;
-                    }
-                });
-
-                var updatedOrder = App.State.roomData.order.filter(function(id) { return id !== App.State.myId; });
-                updates['/order'] = updatedOrder;
-                updates['/players/' + App.State.myId] = null;
-                
-                alert("Ви збанкрутували!");
-            }
         }
     },
 
@@ -456,7 +501,7 @@ var App = {
                     <div class="cell-meta-title">${tile.name}</div>
                     <div class="cell-center-graphic">${tile.icon || '💼'}</div>
                     <div class="cell-owner-label" id="owner-box-${tile.id}"></div>
-                    <div class="cell-price-tag">${tile.price ? '$' + tile.price : (tile.cost ? '$' + tile.cost : '')}</div>
+                    <div class="cell-price-tag" id="price-tag-${tile.id}">${tile.price ? '$' + tile.price : (tile.cost ? '$' + tile.cost : '')}</div>
                     <div class="cell-tokens-tray" id="tray-box-${tile.id}"></div>
                 `;
                 container.appendChild(node);
@@ -483,12 +528,12 @@ var App = {
             var activeId = r.order[r.turnIndex];
             var activeCorp = r.players[activeId];
 
-            // Обробка зміни ходу для виклику анімації
             if(r.turnIndex !== App.State.lastTurnIndex && activeCorp) {
                 App.State.lastTurnIndex = r.turnIndex;
                 App.UI.triggerTurnAnimation(activeCorp.name);
             }
 
+            // Динамічний рендеринг власників, рівнів та оновлення поточної ціни ОРЕНДИ на полі
             GameConfig.mapData.forEach(function(tile) {
                 var serverTile = r.cells[tile.id];
                 var tray = document.getElementById(`tray-box-${tile.id}`);
@@ -496,6 +541,7 @@ var App = {
 
                 var label = document.getElementById(`owner-box-${tile.id}`);
                 var lvlContainer = document.getElementById(`lvl-box-${tile.id}`);
+                var priceTag = document.getElementById(`price-tag-${tile.id}`);
 
                 if(serverTile && serverTile.owner) {
                     var ownerMeta = r.players[serverTile.owner];
@@ -504,6 +550,14 @@ var App = {
                         label.style.background = ownerMeta.color;
                         label.style.color = "#000";
                     }
+
+                    // Динамічне відображення поточної вартості оренди замість вартості покупки
+                    if(priceTag && (tile.type === 'property' || tile.type === 'utility')) {
+                        var dynamicRent = App.Gameplay.calculateRentFormula(tile, serverTile, r);
+                        priceTag.innerText = `Оренда: $${dynamicRent}`;
+                        priceTag.style.color = "#ef4444"; // Підсвітимо червоним для наочності
+                    }
+
                     if(lvlContainer && tile.type === 'property') {
                         lvlContainer.innerHTML = "";
                         if(serverTile.lvl === 6) {
@@ -517,6 +571,8 @@ var App = {
                 } else {
                     if(label) label.innerText = "";
                     if(lvlContainer) lvlContainer.innerHTML = "";
+                    if(priceTag) priceTag.innerText = tile.price ? '$' + tile.price : (tile.cost ? '$' + tile.cost : '');
+                    if(priceTag) priceTag.style.color = "";
                 }
             });
 
@@ -562,13 +618,59 @@ var App = {
             document.getElementById('dice-status-subtext').innerText = "ОЧІКУВАННЯ ХОДУ";
             document.getElementById('dice-status-subtext').style.color = 'var(--text-muted)';
 
-            // Сценарій, якщо зараз ПАСИВНЕ ОЧІКУВАННЯ рішення від іншого гравця (наприклад, викупу)
+            // Екстрена перевірка для будь-якого гравця на його ходу: можливість розпродати майно
+            if (activeId === App.State.myId && r.pendingAction) {
+                var currentMe = r.players[App.State.myId];
+                var currentTile = GameConfig.mapData[r.pendingAction.tileId];
+                
+                var costToPay = 0;
+                if (r.pendingAction.type === 'rent') {
+                    costToPay = App.Gameplay.calculateRentFormula(currentTile, r.cells[currentTile.id], r);
+                } else if (r.pendingAction.type === 'tax') {
+                    costToPay = currentTile.cost;
+                }
+
+                // Якщо борг перевищує кеш, додаємо спец-панель для розпродажу майна прямо зараз
+                if (costToPay > 0 && currentMe.cash < costToPay) {
+                    panel.style.display = 'block';
+                    primaryBtn.innerText = `⚠️ Ліквідувати активи (Треба: $${costToPay}, Кеш: $${currentMe.cash})`;
+                    primaryBtn.style.opacity = '1';
+                    primaryBtn.style.pointerEvents = 'auto';
+                    
+                    primaryBtn.onclick = function() {
+                        // Фільтруємо компанії, якими володіє поточний гравець
+                        var myProperties = GameConfig.mapData.filter(function(tile) {
+                            return r.cells[tile.id] && r.cells[tile.id].owner === App.State.myId;
+                        });
+
+                        if (myProperties.length === 0) {
+                            alert("У вас немає майна для продажу!");
+                            return;
+                        }
+
+                        var listString = myProperties.map(function(t) {
+                            return `ID [${t.id}] : ${t.name} (Повернення: $${Math.round(t.price * 0.5)})`;
+                        }).join('\n');
+
+                        var chosenId = prompt(`Введіть ID компанії для продажу банку:\n\n${listString}`);
+                        if (chosenId !== null && r.cells[chosenId] && r.cells[chosenId].owner === App.State.myId) {
+                            App.Gameplay.executeBusinessAction('sell_asset_emergency', chosenId);
+                        } else if(chosenId !== null) {
+                            alert("Некоректний ID фірми!");
+                        }
+                    };
+                    
+                    passBtn.style.display = 'none';
+                    return; 
+                }
+            }
+
+            // Очікування рішення щодо викупу від іншого гравця
             if (r.pendingAction && r.pendingAction.type === 'buyout_decision') {
                 var targetTile = GameConfig.mapData[r.pendingAction.tileId];
                 var currentOwner = r.cells[targetTile.id].owner;
 
                 if (currentOwner === App.State.myId) {
-                    // Я власник, у мене просять викупити фірму
                     panel.style.display = 'block';
                     passBtn.style.display = 'block';
                     
@@ -580,7 +682,6 @@ var App = {
                     passBtn.innerText = "Відхилити пропозицію";
                     passBtn.onclick = function() { App.Gameplay.executeBusinessAction('decline_buyout'); };
                 } else {
-                    // Я просто чекаю, доки власник прийме рішення
                     panel.style.display = 'block';
                     primaryBtn.innerText = "Очікування відповіді щодо викупу...";
                     primaryBtn.style.opacity = '0.5';
@@ -590,7 +691,7 @@ var App = {
                 return; 
             }
 
-            // Основна логіка активного гравця
+            // Стандартна логіка активного ходу
             if (activeId === App.State.myId) {
                 if (r.pendingAction && r.pendingAction.type !== 'build') {
                     panel.style.display = 'block';
@@ -612,7 +713,6 @@ var App = {
                             primaryBtn.style.pointerEvents = 'none';
                         }
 
-                        // Кнопка відмови активна ЗАВЖДИ (навіть коли немає грошей, щоб не блокувати хід)
                         passBtn.style.display = 'block';
                         passBtn.innerText = "Відмовитися від покупки";
                         passBtn.onclick = function() { App.Gameplay.executeBusinessAction('pass_buy'); };
@@ -625,13 +725,12 @@ var App = {
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
 
                     } else if (r.pendingAction.type === 'buyout_proposal') {
-                        // Стадія після сплати оренди: пропозиція корпоративного викупу
                         var currentOffer = r.pendingAction.price;
                         primaryBtn.innerText = `Запропонувати викуп за $${currentOffer}`;
                         primaryBtn.style.opacity = '1';
                         primaryBtn.style.pointerEvents = 'auto';
                         primaryBtn.onclick = function() { 
-                            var customPrice = prompt(`Введіть вашу суму викупу (мінімальна стартова ціна: $${currentOffer}):`, currentOffer);
+                            var customPrice = prompt(`Введіть вашу суму викупу (мінімальна ціна: $${currentOffer}):`, currentOffer);
                             if(customPrice) App.Gameplay.executeBusinessAction('send_buyout', customPrice);
                         };
 
