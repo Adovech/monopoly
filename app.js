@@ -487,45 +487,58 @@ var App = {
             document.getElementById('dice-status-subtext').innerText = "ОЧІКУВАННЯ ХОДУ";
             document.getElementById('dice-status-subtext').style.color = 'var(--text-muted)';
 
-            if(activeId === App.State.myId) {
-                if(r.pendingAction) {
+            if (activeId === App.State.myId) {
+                // ВАЖЛИВО: якщо є pendingAction, перевіряємо, чи він справді активний для поточного поля
+                if (r.pendingAction && r.pendingAction.type !== 'build') {
                     panel.style.display = 'block';
                     passBtn.style.display = 'none';
                     
                     var targetTile = GameConfig.mapData[r.pendingAction.tileId];
                     
-                    if(r.pendingAction.type === 'buy') {
+                    if (r.pendingAction.type === 'buy') {
                         primaryBtn.innerText = `Придбати ${targetTile.name} ($${targetTile.price})`;
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
-                    } else if(r.pendingAction.type === 'rent') {
+                    } else if (r.pendingAction.type === 'rent') {
                         var rentCost = App.Gameplay.calculateRentFormula(targetTile, r.cells[targetTile.id], r);
                         primaryBtn.innerText = `Сплатити оренду ($${rentCost})`;
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
-                    } else if(r.pendingAction.type === 'tax') {
+                    } else if (r.pendingAction.type === 'tax') {
                         primaryBtn.innerText = `Сплатити мито ($${targetTile.cost})`;
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
-                    } else if(r.pendingAction.type === 'event') {
+                    } else if (r.pendingAction.type === 'event') {
                         primaryBtn.innerText = `Відкрити інвест-картку`;
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
                     }
                 } else {
-                    var myCurrentTile = GameConfig.mapData[activeCorp.pos];
-                    var myServerTile = r.cells[activeCorp.pos];
-
-                    if(myServerTile && myServerTile.owner === App.State.myId && myCurrentTile.type === 'property' && myServerTile.lvl < 6) {
-                        panel.style.display = 'block';
-                        passBtn.style.display = 'block';
-                        var upgradeCost = Math.round(myCurrentTile.price * 0.6);
-                        if(activeCorp.role === 'tycoon') upgradeCost = Math.round(upgradeCost * 0.7);
-
-                        primaryBtn.innerText = `Збудувати філію ($${upgradeCost})`;
-                        r.pendingAction = { type: 'build', tileId: myCurrentTile.id };
-                        primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
-                    }
-
+                    // Якщо обов'язкових дій (оренда, покупка) немає — дозволяємо кидати кубики!
                     clickableArea.style.pointerEvents = 'auto';
                     document.getElementById('dice-status-subtext').innerText = "👉 ВАШ ХІД! КЛИКНІТЬ";
                     document.getElementById('dice-status-subtext').style.color = activeCorp.color;
+
+                    // Модернізація (build) тепер є ДОДАТКОВОЮ опцією, яка не блокує хід
+                    var myCurrentTile = GameConfig.mapData[activeCorp.pos];
+                    var myServerTile = r.cells[activeCorp.pos];
+
+                    if (myServerTile && myServerTile.owner === App.State.myId && myCurrentTile.type === 'property' && myServerTile.lvl < 6) {
+                        panel.style.display = 'block';
+                        passBtn.style.display = 'block';
+                        
+                        var upgradeCost = Math.round(myCurrentTile.price * 0.6);
+                        if (activeCorp.role === 'tycoon') upgradeCost = Math.round(upgradeCost * 0.7);
+
+                        primaryBtn.innerText = `Збудувати філію ($${upgradeCost})`;
+                        primaryBtn.onclick = function() { 
+                            // Тимчасово створюємо екшен суто на момент кліку, щоб не ламати глобальний стейт
+                            r.pendingAction = { type: 'build', tileId: myCurrentTile.id };
+                            App.Gameplay.executeBusinessAction(); 
+                        };
+                        
+                        // Кнопка пасу просто закриває панель будівництва, хід передавати не треба, бо кубики доступні
+                        passBtn.innerText = "Сховати панель розбудови";
+                        passBtn.onclick = function() {
+                            panel.style.display = 'none';
+                        };
+                    }
                 }
             }
 
