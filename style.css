@@ -441,3 +441,34 @@ header h1 {
     .board-viewport { width: var(--board-size); height: var(--board-size); padding: 8px; }
     .side-control-panel { width: 100%; max-width: 100%; min-width: 100%; }
 }
+.turn-flash-announcement {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-25%, -50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid #38bdf8;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+    color: #fff;
+    padding: 20px 40px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    z-index: 9999;
+    animation: flashInAndOut 2s forwards ease-in-out;
+    pointer-events: none;
+}
+.turn-flash-name {
+    font-size: 1.8rem;
+    color: #38bdf8;
+    margin-top: 5px;
+    text-transform: uppercase;
+}
+@keyframes flashInAndOut {
+    0% { transform: translate(-50%, -40%) scale(0.8); opacity: 0; }
+    15% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+    25% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
+}
