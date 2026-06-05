@@ -239,17 +239,21 @@ var App = {
             db.ref('rooms/' + App.State.roomId).update(updates);
         },
 
-        executeBusinessAction: function() {
+        executeBusinessAction: function(forcedType) {
             var r = App.State.roomData;
             var act = r.pendingAction;
+            
+            var currentType = forcedType || (act ? act.type : null);
+            if (!currentType) return;
+
             var me = r.players[App.State.myId];
-            var tile = GameConfig.mapData[act.tileId];
-            var serverTile = r.cells[act.tileId];
+            var tile = GameConfig.mapData[act ? act.tileId : me.pos];
+            var serverTile = r.cells[act ? act.tileId : me.pos];
             var logLength = r.logs ? r.logs.length : 0;
 
             var updates = {};
 
-            if(act.type === "buy") {
+            if(currentType === "buy") {
                 if(me.cash < tile.price) return alert("Брак коштів для покупки активу!");
                 
                 updates['/players/' + App.State.myId + '/cash'] = me.cash - tile.price;
@@ -261,14 +265,20 @@ var App = {
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
-            else if(act.type === "build") {
+            else if(currentType === "pass_buy") {
+                updates['/logs/' + logLength] = { type: "warn", text: `🏳️ ${me.name} вирішив не купувати ${tile.name} та зберіг ліквідність.` };
+                updates['/pendingAction'] = null;
+                App.Gameplay.nextTurn(updates);
+                db.ref('rooms/' + App.State.roomId).update(updates);
+            }
+            else if(currentType === "build") {
                 var buildCost = Math.round(tile.price * 0.6);
                 if(me.role === "tycoon") buildCost = Math.round(buildCost * 0.7);
 
                 if(me.cash < buildCost) return alert("Брак ліквідності для модернізації!");
 
                 updates['/players/' + App.State.myId + '/cash'] = me.cash - buildCost;
-                updates['/cells/' + act.tileId + '/lvl'] = serverTile.lvl + 1;
+                updates['/cells/' + tile.id + '/lvl'] = serverTile.lvl + 1;
                 updates['/logs/' + logLength] = { 
                     type: "good", 
                     text: `🏢 ${me.name} модернізує ${tile.name}. Рівень підвищено до ${serverTile.lvl + 1}.` 
@@ -277,7 +287,7 @@ var App = {
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
-            else if(act.type === "rent") {
+            else if(currentType === "rent") {
                 var hostCorp = r.players[serverTile.owner];
                 var finalRent = App.Gameplay.calculateRentFormula(tile, serverTile, r);
 
@@ -293,7 +303,7 @@ var App = {
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
-            else if(act.type === "tax") {
+            else if(currentType === "tax") {
                 updates['/players/' + App.State.myId + '/cash'] = me.cash - tile.cost;
                 updates['/logs/' + logLength] = { type: "alert", text: `🏛️ Податки: ${me.name} сплачує в бюджет $${tile.cost}.` };
                 updates['/pendingAction'] = null;
@@ -302,7 +312,7 @@ var App = {
                 App.Gameplay.nextTurn(updates);
                 db.ref('rooms/' + App.State.roomId).update(updates);
             } 
-            else if(act.type === "event") {
+            else if(currentType === "event") {
                 var randomCard = GameConfig.chanceCards[Math.floor(Math.random() * GameConfig.chanceCards.length)];
                 var calculatedCash = me.cash;
 
@@ -434,7 +444,7 @@ var App = {
                         if(serverTile.lvl === 6) {
                             lvlContainer.innerHTML = `<div class="infrastructure-hotel"></div>`;
                         } else {
-                            for(var i = 1; i < serverTile.lvl; i++) {
+                            for(var i = 0; i < serverTile.lvl; i++) {
                                 lvlContainer.innerHTML += `<div class="infrastructure-house"></div>`;
                             }
                         }
@@ -488,7 +498,7 @@ var App = {
             document.getElementById('dice-status-subtext').style.color = 'var(--text-muted)';
 
             if (activeId === App.State.myId) {
-                // ВАЖЛИВО: якщо є pendingAction, перевіряємо, чи він справді активний для поточного поля
+                
                 if (r.pendingAction && r.pendingAction.type !== 'build') {
                     panel.style.display = 'block';
                     passBtn.style.display = 'none';
@@ -496,8 +506,26 @@ var App = {
                     var targetTile = GameConfig.mapData[r.pendingAction.tileId];
                     
                     if (r.pendingAction.type === 'buy') {
+                        var canAfford = activeCorp.cash >= targetTile.price;
+                        
                         primaryBtn.innerText = `Придбати ${targetTile.name} ($${targetTile.price})`;
-                        primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
+                        
+                        if (canAfford) {
+                            primaryBtn.style.opacity = '1';
+                            primaryBtn.style.pointerEvents = 'auto';
+                            primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
+                        } else {
+                            primaryBtn.innerText = `Брак коштів ($${targetTile.price})`;
+                            primaryBtn.style.opacity = '0.5';
+                            primaryBtn.style.pointerEvents = 'none';
+                        }
+
+                        passBtn.style.display = 'block';
+                        passBtn.innerText = "Відмовитися від покупки";
+                        passBtn.onclick = function() {
+                            App.Gameplay.executeBusinessAction('pass_buy');
+                        };
+
                     } else if (r.pendingAction.type === 'rent') {
                         var rentCost = App.Gameplay.calculateRentFormula(targetTile, r.cells[targetTile.id], r);
                         primaryBtn.innerText = `Сплатити оренду ($${rentCost})`;
@@ -510,12 +538,10 @@ var App = {
                         primaryBtn.onclick = function() { App.Gameplay.executeBusinessAction(); };
                     }
                 } else {
-                    // Якщо обов'язкових дій (оренда, покупка) немає — дозволяємо кидати кубики!
                     clickableArea.style.pointerEvents = 'auto';
                     document.getElementById('dice-status-subtext').innerText = "👉 ВАШ ХІД! КЛИКНІТЬ";
                     document.getElementById('dice-status-subtext').style.color = activeCorp.color;
 
-                    // Модернізація (build) тепер є ДОДАТКОВОЮ опцією, яка не блокує хід
                     var myCurrentTile = GameConfig.mapData[activeCorp.pos];
                     var myServerTile = r.cells[activeCorp.pos];
 
@@ -528,12 +554,10 @@ var App = {
 
                         primaryBtn.innerText = `Збудувати філію ($${upgradeCost})`;
                         primaryBtn.onclick = function() { 
-                            // Тимчасово створюємо екшен суто на момент кліку, щоб не ламати глобальний стейт
                             r.pendingAction = { type: 'build', tileId: myCurrentTile.id };
                             App.Gameplay.executeBusinessAction(); 
                         };
                         
-                        // Кнопка пасу просто закриває панель будівництва, хід передавати не треба, бо кубики доступні
                         passBtn.innerText = "Сховати панель розбудови";
                         passBtn.onclick = function() {
                             panel.style.display = 'none';
